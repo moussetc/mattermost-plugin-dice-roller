@@ -87,15 +87,32 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 			}
 		}
 
+		// Get the user to we can display the right name
+		user, userErr := p.api.GetUser(args.UserId)
+		if userErr != nil {
+			return nil, userErr
+		}
+
 		attachments := []*model.SlackAttachment{
 			&model.SlackAttachment{
 				Pretext:  fmt.Sprintf("*I rolled: %s*", strings.Join(formatedParams, " ")),
 				Text:     text,
 				Fallback: "I rolled some dices...",
+				//ImageURL: "http://upload.wikimedia.org/wikipedia/commons/f/f5/Twenty_sided_dice.png",
 			},
 		}
 
-		return &model.CommandResponse{ResponseType: "in_channel", Username: args.UserId, Attachments: attachments}, nil
+		props := map[string]interface{}{
+			"from_webhook":  "true",
+			"use_user_icon": "true",
+		}
+
+		return &model.CommandResponse{
+			ResponseType: "in_channel",
+			Username:     user.GetFullName(),
+			Attachments:  attachments,
+			Props:        props,
+		}, nil
 	}
 
 	return nil, p.error("Expected trigger " + cmd + " but got " + args.Command)
