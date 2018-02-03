@@ -22,64 +22,33 @@ type DiceRollingPlugin struct {
 	TeamId        string
 }
 
-// DiceRollingPluginConfiguration contains all settings configurable for the DiceRollingPlugin
-type DiceRollingPluginConfiguration struct {
-	Trigger      string
-	AutoComplete bool
-}
-
 const (
-	defaultTrigger string = "roll"
-	diceAPIURL     string = "http://roll.diceapi.com/json/"
+	trigger    string = "roll"
+	diceAPIURL string = "http://roll.diceapi.com/json/"
 )
 
 // OnActivate register the plugin command
 func (p *DiceRollingPlugin) OnActivate(api plugin.API) error {
 	p.api = api
-	err := p.OnConfigurationChange()
-	if err != nil {
-		return err
-	}
-	config := p.config()
-	if config.Trigger == "" {
-		config.Trigger = defaultTrigger
-	}
-	err = api.RegisterCommand(&model.Command{
-		Trigger:          config.Trigger,
+	return api.RegisterCommand(&model.Command{
+		Trigger:          trigger,
 		TeamId:           p.TeamId,
 		Description:      "Roll one or more dice",
 		DisplayName:      "Dice rolling command",
-		AutoComplete:     config.AutoComplete,
+		AutoComplete:     true,
 		AutoCompleteDesc: "Roll one or several dice with the possibility to compute the sum automatically because we are lazy, lazy people",
 		AutoCompleteHint: "20 d6 3d4 [sum]",
 	})
-	return err
-}
-
-func (p *DiceRollingPlugin) config() *DiceRollingPluginConfiguration {
-	return p.configuration.Load().(*DiceRollingPluginConfiguration)
-}
-
-// OnConfigurationChange applies configuration change to the plugin
-func (p *DiceRollingPlugin) OnConfigurationChange() error {
-	var configuration DiceRollingPluginConfiguration
-	err := p.api.LoadPluginConfiguration(&configuration)
-	p.configuration.Store(&configuration)
-	return err
 }
 
 // OnDeactivate unregisters the plugin command
 func (p *DiceRollingPlugin) OnDeactivate() error {
-	return p.api.UnregisterCommand(p.TeamId, p.config().Trigger)
+	return p.api.UnregisterCommand(p.TeamId, trigger)
 }
 
 // ExecuteCommand returns a post that displays the result of the dice rolls
 func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	config := p.config()
-	if config.Trigger == "" {
-		config.Trigger = defaultTrigger
-	}
-	cmd := "/" + config.Trigger
+	cmd := "/" + trigger
 	if strings.HasPrefix(args.Command, cmd) {
 		query := strings.Replace(args.Command, cmd, "", 1)
 
@@ -136,7 +105,7 @@ func (p *DiceRollingPlugin) error(message string) *model.AppError {
 	return model.NewAppError("Dice Roller Plugin ExecuteCommand", message, nil, "", http.StatusBadRequest)
 }
 
-type RollAPIResult struct {
+type rollAPIResult struct {
 	Success bool `json:"success"`
 	Dice    []struct {
 		Value int    `json:"value"`
@@ -144,8 +113,8 @@ type RollAPIResult struct {
 	} `json:"dice"`
 }
 
-func callDiceAPI(rollRequest string) (*RollAPIResult, error) {
-	resp := new(RollAPIResult)
+func callDiceAPI(rollRequest string) (*rollAPIResult, error) {
+	resp := new(rollAPIResult)
 	url := diceAPIURL + rollRequest
 	r, err := http.Get(url)
 	if err != nil {

@@ -4,15 +4,3 @@ description: Add some dice rolling to Mattermost
 version: '0.1.0'
 backend:
     executable: plugin
-settings_schema:
-    settings:
-        - key: Trigger
-          type: text
-          display_name: Command Trigger
-          default: 'roll'
-          help_text: Choose the trigger used for the dice rolling slash command 
-        - key: AutoComplete
-          type: bool
-          display_name: Auto-complete
-          help_text: Show the command in the auto-completion list of commands
-          default: true

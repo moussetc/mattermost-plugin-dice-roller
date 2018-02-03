@@ -90,16 +90,7 @@ func genericCorrectInputTestPlugin(t *testing.T, expectedText string, inputDiceR
 
 func initTestPlugin(t *testing.T) *DiceRollingPlugin {
 
-	configuration := DiceRollingPluginConfiguration{
-		Trigger:      "roll",
-		AutoComplete: true,
-	}
-
 	api := &plugintest.API{}
-	api.On("LoadPluginConfiguration", mock.AnythingOfType("*main.DiceRollingPluginConfiguration")).Return(func(dest interface{}) error {
-		*dest.(*DiceRollingPluginConfiguration) = configuration
-		return nil
-	})
 	api.On("RegisterCommand", mock.Anything).Return(nil)
 	api.On("UnregisterCommand", mock.Anything, mock.Anything).Return(nil)
 
@@ -111,23 +102,13 @@ func initTestPlugin(t *testing.T) *DiceRollingPlugin {
 
 func TestLifecyclePlugin(t *testing.T) {
 
-	configuration := DiceRollingPluginConfiguration{
-		Trigger:      "roll",
-		AutoComplete: true,
-	}
-
 	api := &plugintest.API{}
-	api.On("LoadPluginConfiguration", mock.AnythingOfType("*main.DiceRollingPluginConfiguration")).Return(func(dest interface{}) error {
-		*dest.(*DiceRollingPluginConfiguration) = configuration
-		return nil
-	})
 	api.On("RegisterCommand", mock.Anything).Return(nil)
 	api.On("UnregisterCommand", mock.Anything, mock.Anything).Return(nil)
 
 	p := DiceRollingPlugin{}
 	assert.Nil(t, p.OnActivate(api))
 
-	// TODO test different configurations
 	// TODO : test executecommand while deactivated ?
 
 	assert.Nil(t, p.OnDeactivate())
