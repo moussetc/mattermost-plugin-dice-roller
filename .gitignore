@@ -1,0 +1,8 @@
+plugin
+plugin.exe
+debug
+debug.test*
+plugin.tar.gz
+mattermost-plugin-dice-roller.exe
+launch.json
+convoluted-build.sh
