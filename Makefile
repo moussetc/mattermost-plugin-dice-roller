@@ -7,11 +7,11 @@
 TARGET_OS=linux
 TARGET_ARCH=amd64
 
-SRC=plugin.go
+SRC=plugin.go dice.go
 EXEC=plugin
 CONF=plugin.yaml
 PACKAGE=plugin.tar.gz
-TEST=plugin_test.go
+TEST=plugin_test.go dice_test.go
 
 $(EXEC): $(SRC)
 	GOOS=$(TARGET_OS) GOARCH=$(TARGET_ARCH) go build -o $(EXEC) $(SRC)

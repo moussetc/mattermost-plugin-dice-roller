@@ -12,15 +12,6 @@ import (
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
 )
 
-func TestCallDiceAPI(t *testing.T) {
-	resp, err := callDiceAPI("1d5")
-	assert.Nil(t, err)
-	assert.NotNil(t, resp)
-	assert.True(t, resp.Success)
-	assert.Equal(t, 1, len(resp.Dice))
-	assert.Equal(t, "d5", resp.Dice[0].Type)
-}
-
 func TestBadTrigger(t *testing.T) {
 	genericWrongInputTestPlugin(t, "/lolzies d20")
 }
@@ -61,18 +52,18 @@ func genericWrongInputTestPlugin(t *testing.T, badInput string) {
 }
 
 func TestGoodRequestRoll1(t *testing.T) {
-	genericCorrectInputTestPlugin(t, "*rolls a d1:* **1**", "1")
+	genericCorrectInputTestPlugin(t, "*rolls 1:* **1 **", "1")
 }
 
 func TestGoodRequestRoll5D1(t *testing.T) {
 	genericCorrectInputTestPlugin(
 		t,
-		"*rolls a d1:* **1**\n*rolls a d1:* **1**\n*rolls a d1:* **1**\n*rolls a d1:* **1**\n*rolls a d1:* **1**",
+		"*rolls 5d1:* **1 1 1 1 1 **",
 		"5d1")
 }
 
 func TestGoodRequestRoll3D1Sum(t *testing.T) {
-	genericCorrectInputTestPlugin(t, "*rolls a d1:* **1**\n*rolls a d1:* **1**\n*rolls a d1:* **1**\n**Total = 3**", "3d1 sum")
+	genericCorrectInputTestPlugin(t, "*rolls 3d1:* **1 1 1 **\n**Total = 3**", "3d1 sum")
 }
 
 // TODO : how do you test the random result ? by mocking the Dice API I guess

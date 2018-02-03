@@ -1,11 +1,8 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"regexp"
 	"strings"
 	"sync/atomic"
 
@@ -55,36 +52,31 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 		rollRequests := strings.Fields(strings.TrimSpace(query))
 
 		sumRequest := false
-		formatedParams := make([]string, 0)
+		text := ""
+		sum := 0
 		for _, rollRequest := range rollRequests {
 			if rollRequest == "sum" {
 				sumRequest = true
-			} else if matched, err := regexp.MatchString("^([1-9]\\d*)?[dD][1-9]\\d*$", rollRequest); err == nil && matched {
-				// Correct dice format such ad "4d20"
-				formatedParams = append(formatedParams, rollRequest)
-			} else if matched, _ := regexp.MatchString("^[1-9]\\d*$", rollRequest); matched {
-				// Convert simple number like "20" to "d20"
-				formatedParams = append(formatedParams, "d"+rollRequest)
 			} else {
-				return nil, p.error("The value " + rollRequest + " is not a valid dice roll request")
+				result, err := rollDice(rollRequest)
+				if err != nil {
+					return nil, p.error(fmt.Sprint(err))
+				}
+				formattedResults := ""
+				for _, roll := range result.results {
+					formattedResults += fmt.Sprintf("%d ", roll)
+					sum += roll
+				}
+				text += fmt.Sprintf("*rolls %s:* **%s**\n", rollRequest, formattedResults)
 			}
 		}
 
-		resp, err := callDiceAPI(strings.Join(formatedParams, "/"))
-		if err != nil {
-			return nil, p.error("Could not get rolls from API : " + fmt.Sprint(err))
+		if len(rollRequests) == 0 || sumRequest && len(rollRequests) == 1 {
+			return nil, p.error("No roll request arguments found (such as '20', '4d6', etc.).")
 		}
 
-		text := ""
-		if resp.Success {
-			var sum int
-			for _, die := range resp.Dice {
-				text += fmt.Sprintf("*rolls a %s:* **%d**\n", die.Type, die.Value)
-				sum += die.Value
-			}
-			if sumRequest {
-				text += fmt.Sprintf("**Total = %d**", sum)
-			}
+		if sumRequest {
+			text += fmt.Sprintf("**Total = %d**", sum)
 		}
 
 		// Get the user to we can display the right name
@@ -127,25 +119,6 @@ type rollAPIResult struct {
 		Value int    `json:"value"`
 		Type  string `json:"type"`
 	} `json:"dice"`
-}
-
-func callDiceAPI(rollRequest string) (*rollAPIResult, error) {
-	resp := new(rollAPIResult)
-	url := diceAPIURL + rollRequest
-	r, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer r.Body.Close()
-	// fmt.Println(r.Body)
-	if r.StatusCode == 200 {
-		err = json.NewDecoder(r.Body).Decode(resp)
-		if err != nil {
-			return nil, err
-		}
-		return resp, nil
-	}
-	return nil, errors.New("API returned statusCode: " + string(r.StatusCode))
 }
 
 // Install the RCP plugin
