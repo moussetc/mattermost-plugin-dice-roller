@@ -79,11 +79,11 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 		if resp.Success {
 			var sum int
 			for _, die := range resp.Dice {
-				text += fmt.Sprintf("%d ", die.Value)
+				text += fmt.Sprintf("*rolls a %s:* **%d**\n", die.Type, die.Value)
 				sum += die.Value
 			}
 			if sumRequest {
-				text += fmt.Sprintf("\n*sum = %d*", sum)
+				text += fmt.Sprintf("**Total = %d**", sum)
 			}
 		}
 
@@ -95,10 +95,9 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 
 		attachments := []*model.SlackAttachment{
 			&model.SlackAttachment{
-				Pretext:  fmt.Sprintf("*I rolled: %s*", strings.Join(formatedParams, " ")),
 				Text:     text,
-				Fallback: "I rolled some dices...",
-				//ImageURL: "http://upload.wikimedia.org/wikipedia/commons/f/f5/Twenty_sided_dice.png",
+				Fallback: fmt.Sprintf("%s rolled some dice!", user.GetFullName()),
+				ThumbURL: "http://upload.wikimedia.org/wikipedia/commons/f/f5/Twenty_sided_dice.png",
 			},
 		}
 
@@ -109,9 +108,9 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 
 		return &model.CommandResponse{
 			ResponseType: "in_channel",
-			Username:     user.GetFullName(),
-			Attachments:  attachments,
-			Props:        props,
+			// Username:     user.GetFullName(),
+			Attachments: attachments,
+			Props:       props,
 		}, nil
 	}
 

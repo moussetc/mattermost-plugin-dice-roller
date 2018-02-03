@@ -46,7 +46,9 @@ func TestBadRequest0D5(t *testing.T) {
 }
 
 func genericWrongInputTestPlugin(t *testing.T, badInput string) {
-	p := initTestPlugin(t)
+	api := initTestPlugin(t)
+	p := DiceRollingPlugin{}
+	assert.Nil(t, p.OnActivate(api))
 
 	var command *model.CommandArgs
 	// Wrong dice requests
@@ -59,25 +61,31 @@ func genericWrongInputTestPlugin(t *testing.T, badInput string) {
 }
 
 func TestGoodRequestRoll1(t *testing.T) {
-	genericCorrectInputTestPlugin(t, "1", "1")
+	genericCorrectInputTestPlugin(t, "*rolls a d1:* **1**", "1")
 }
 
 func TestGoodRequestRoll5D1(t *testing.T) {
-	genericCorrectInputTestPlugin(t, "1 1 1 1 1", "5d1")
+	genericCorrectInputTestPlugin(
+		t,
+		"*rolls a d1:* **1**\n*rolls a d1:* **1**\n*rolls a d1:* **1**\n*rolls a d1:* **1**\n*rolls a d1:* **1**",
+		"5d1")
 }
 
 func TestGoodRequestRoll3D1Sum(t *testing.T) {
-	genericCorrectInputTestPlugin(t, "1 1 1 \n*sum = 3*", "3d1 sum")
+	genericCorrectInputTestPlugin(t, "*rolls a d1:* **1**\n*rolls a d1:* **1**\n*rolls a d1:* **1**\n**Total = 3**", "3d1 sum")
 }
 
 // TODO : how do you test the random result ? by mocking the Dice API I guess
 
 func genericCorrectInputTestPlugin(t *testing.T, expectedText string, inputDiceRequest string) {
 
-	p := initTestPlugin(t)
+	api := initTestPlugin(t)
+	p := DiceRollingPlugin{}
+	assert.Nil(t, p.OnActivate(api))
 
 	command := &model.CommandArgs{
 		Command: "/roll " + inputDiceRequest,
+		UserId:  "userid",
 	}
 	response, err := p.ExecuteCommand(command)
 	assert.Nil(t, err)
@@ -88,25 +96,24 @@ func genericCorrectInputTestPlugin(t *testing.T, expectedText string, inputDiceR
 	assert.Equal(t, expectedText, strings.TrimSpace(response.Attachments[0].Text))
 }
 
-func initTestPlugin(t *testing.T) *DiceRollingPlugin {
+func initTestPlugin(t *testing.T) *plugintest.API {
 
 	api := &plugintest.API{}
 	api.On("RegisterCommand", mock.Anything).Return(nil)
 	api.On("UnregisterCommand", mock.Anything, mock.Anything).Return(nil)
+	api.On("GetUser", mock.Anything).Return(&model.User{
+		Id:       "userid",
+		Nickname: "User",
+	}, (*model.AppError)(nil))
 
-	p := DiceRollingPlugin{}
-	assert.Nil(t, p.OnActivate(api))
-
-	return &p
+	return api
 }
 
 func TestLifecyclePlugin(t *testing.T) {
 
-	api := &plugintest.API{}
-	api.On("RegisterCommand", mock.Anything).Return(nil)
-	api.On("UnregisterCommand", mock.Anything, mock.Anything).Return(nil)
-
+	api := initTestPlugin(t)
 	p := DiceRollingPlugin{}
+
 	assert.Nil(t, p.OnActivate(api))
 
 	// TODO : test executecommand while deactivated ?
