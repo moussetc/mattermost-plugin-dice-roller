@@ -62,6 +62,17 @@ func (p *DiceRollingPlugin) OnDeactivate() error {
 	return nil
 }
 
+func DisplayHelp() (*model.CommandResponse) {
+	return &model.CommandResponse{
+		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		Text: "- `/roll <integer>` will roll a die with the corresponding number of sides. Example: `/roll 20` rolls a 20-sided die.
+		- `/roll <N:integer>d<S:integer>` will roll N S-sided dice. Example: `/roll 5D6`
+		- `/roll <roll1> <roll2> <roll3> [...]` will roll all the requested dice. Example: `/roll 5 d8 13D20` will roll one 5-sided die, 1 8-sided die and 13 20-sided dice.
+		- `/roll <roll1> <roll2> [...] sum` will roll all the requested dice and compute the sum of all the roll results. Example: `/roll 2d6 8` will roll two 6-sided die, 1 8-sided die and display the sum of all the results.
+		- `/roll help` will show this help text.",
+	}
+}
+
 // ExecuteCommand returns a post that displays the result of the dice rolls
 func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	if !p.enabled {
@@ -73,9 +84,13 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 
 	cmd := "/" + trigger
 	if strings.HasPrefix(args.Command, cmd) {
-		query := strings.Replace(args.Command, cmd, "", 1)
+		query := strings.TrimSpace((strings.Replace(args.Command, cmd, "", 1)))
 
-		rollRequests := strings.Fields(strings.TrimSpace(query))
+		if query == "help" || query == "--help" || query == "h" || query == "-h" {
+			return GetHelpMessage(), nil
+		}
+		
+		rollRequests := strings.Fields(query)
 
 		sumRequest := false
 		text := ""
@@ -125,7 +140,7 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 		}
 
 		return &model.CommandResponse{
-			ResponseType: "in_channel",
+			ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
 			// Username:     user.GetFullName(),
 			Attachments: attachments,
 			Props:       props,
