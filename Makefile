@@ -2,7 +2,7 @@
 # Makefile for Mattermost Dice Roller
 #
 SRC=plugin.go dice.go
-EXEC=matermost-plugin-diceroller.exe
+EXEC=plugin
 CONF=plugin.yaml
 PACKAGE_BASENAME=mattermost-plugin-diceroller
 TEST=plugin_test.go dice_test.go
