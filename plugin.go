@@ -16,7 +16,7 @@ import (
 type DiceRollingPlugin struct {
 	api           plugin.API
 	configuration atomic.Value
-	TeamId        string
+	enabled       bool
 }
 
 const (
@@ -27,9 +27,10 @@ const (
 // OnActivate register the plugin command
 func (p *DiceRollingPlugin) OnActivate(api plugin.API) error {
 	p.api = api
+	p.enabled = true
+
 	return api.RegisterCommand(&model.Command{
 		Trigger:          trigger,
-		TeamId:           p.TeamId,
 		Description:      "Roll one or more dice",
 		DisplayName:      "Dice rolling command",
 		AutoComplete:     true,
@@ -38,13 +39,21 @@ func (p *DiceRollingPlugin) OnActivate(api plugin.API) error {
 	})
 }
 
-// OnDeactivate unregisters the plugin command
+// OnDeactivate handles plugin deactivation
 func (p *DiceRollingPlugin) OnDeactivate() error {
-	return p.api.UnregisterCommand(p.TeamId, trigger)
+	p.enabled = false
+	return nil
 }
 
 // ExecuteCommand returns a post that displays the result of the dice rolls
 func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+	if !p.enabled {
+		return nil, p.error("Cannot execute command while the plugin is disabled.")
+	}
+	if p.api == nil {
+		return nil, p.error("Cannot access the plugin API.")
+	}
+
 	cmd := "/" + trigger
 	if strings.HasPrefix(args.Command, cmd) {
 		query := strings.Replace(args.Command, cmd, "", 1)
