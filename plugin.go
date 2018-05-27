@@ -48,10 +48,10 @@ func (p *DiceRollingPlugin) OnDeactivate() error {
 // ExecuteCommand returns a post that displays the result of the dice rolls
 func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	if !p.enabled {
-		return nil, p.error("Cannot execute command while the plugin is disabled.")
+		return nil, appError("Cannot execute command while the plugin is disabled.", nil)
 	}
 	if p.api == nil {
-		return nil, p.error("Cannot access the plugin API.")
+		return nil, appError("Cannot access the plugin API.", nil)
 	}
 
 	cmd := "/" + trigger
@@ -69,7 +69,7 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 			} else {
 				result, err := rollDice(rollRequest)
 				if err != nil {
-					return nil, p.error(fmt.Sprint(err))
+					return nil, appError("Unrecognized dice rolling request", err)
 				}
 				formattedResults := ""
 				for _, roll := range result.results {
@@ -81,7 +81,7 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 		}
 
 		if len(rollRequests) == 0 || sumRequest && len(rollRequests) == 1 {
-			return nil, p.error("No roll request arguments found (such as '20', '4d6', etc.).")
+			return nil, appError("No roll request arguments found (such as '20', '4d6', etc.).", nil)
 		}
 
 		if sumRequest {
@@ -115,11 +115,7 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 		}, nil
 	}
 
-	return nil, p.error("Expected trigger " + cmd + " but got " + args.Command)
-}
-
-func (p *DiceRollingPlugin) error(message string) *model.AppError {
-	return model.NewAppError("Dice Roller Plugin ExecuteCommand", message, nil, "", http.StatusBadRequest)
+	return nil, appError("Expected trigger "+cmd+" but got "+args.Command, nil)
 }
 
 type rollAPIResult struct {
@@ -128,6 +124,14 @@ type rollAPIResult struct {
 		Value int    `json:"value"`
 		Type  string `json:"type"`
 	} `json:"dice"`
+}
+
+func appError(message string, err error) *model.AppError {
+	errorMessage := ""
+	if err != nil {
+		errorMessage = err.Error()
+	}
+	return model.NewAppError("Dice Roller Plugin", message, nil, errorMessage, http.StatusBadRequest)
 }
 
 // Install the RCP plugin
