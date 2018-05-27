@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/rpcplugin"
@@ -16,18 +17,25 @@ import (
 type DiceRollingPlugin struct {
 	api           plugin.API
 	configuration atomic.Value
+	router        *mux.Router
 	enabled       bool
 }
 
 const (
 	trigger    string = "roll"
-	diceAPIURL string = "http://roll.diceapi.com/json/"
+	pluginPath string = "plugins/com.github.moussetc.mattermost.plugin.diceroller"
+	iconPath   string = pluginPath + "/icon.png"
+	iconURL    string = "/" + iconPath
 )
 
 // OnActivate register the plugin command
 func (p *DiceRollingPlugin) OnActivate(api plugin.API) error {
 	p.api = api
 	p.enabled = true
+
+	p.router = mux.NewRouter()
+
+	p.router.Handle(iconURL, http.StripPrefix("/", http.FileServer(http.Dir(iconPath))))
 
 	return api.RegisterCommand(&model.Command{
 		Trigger:          trigger,
@@ -37,6 +45,15 @@ func (p *DiceRollingPlugin) OnActivate(api plugin.API) error {
 		AutoCompleteDesc: "Roll one or several dice with the possibility to compute the sum automatically because we are lazy, lazy people",
 		AutoCompleteHint: "20 d6 3d4 [sum]",
 	})
+}
+
+func (p *DiceRollingPlugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Mattermost-User-Id") == "" {
+		http.Error(w, "please log in", http.StatusForbidden)
+		return
+	}
+
+	p.router.ServeHTTP(w, r)
 }
 
 // OnDeactivate handles plugin deactivation
@@ -98,7 +115,7 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 			&model.SlackAttachment{
 				Text:     text,
 				Fallback: fmt.Sprintf("%s rolled some dice!", user.GetFullName()),
-				ThumbURL: "http://upload.wikimedia.org/wikipedia/commons/f/f5/Twenty_sided_dice.png",
+				ThumbURL: iconURL,
 			},
 		}
 
