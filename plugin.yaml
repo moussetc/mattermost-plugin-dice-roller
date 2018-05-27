@@ -1,6 +1,10 @@
 id: com.github.moussetc.mattermost.plugin.diceroller
 name: Dice Roller
 description: Add some dice rolling to Mattermost
-version: '0.1.0'
+version: '0.1.1'
 backend:
     executable: plugin
+settings_schema:
+    footer: |
+        * The dice icon is provided by [openclipart](https://openclipart.org/detail/94501/twentysided-dice) under the [Creative Commons Zero 1.0 Public Domain License](https://creativecommons.org/publicdomain/zero/1.0/).
+        * To report an issue, make a suggestion or a contribution, or fork your own version of the plugin, [check the repository](https://github.com/moussetc/mattermost-plugin-dice-roller).
