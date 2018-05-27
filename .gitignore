@@ -4,5 +4,7 @@ debug
 debug.test*
 plugin.tar.gz
 mattermost-plugin-dice-roller.exe
+vendor/
+dist/
+.vscode/
 launch.json
-convoluted-build.sh
