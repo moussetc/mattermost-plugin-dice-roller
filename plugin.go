@@ -33,17 +33,18 @@ func (p *DiceRollingPlugin) OnActivate(api plugin.API) error {
 	p.api = api
 	p.enabled = true
 
+	// Serve URL for the dice icon displayed in messages
 	p.router = mux.NewRouter()
-
 	p.router.Handle(iconURL, http.StripPrefix("/", http.FileServer(http.Dir(iconPath))))
 
 	return api.RegisterCommand(&model.Command{
 		Trigger:          trigger,
 		Description:      "Roll one or more dice",
-		DisplayName:      "Dice rolling command",
+		DisplayName:      "Dice roller ⚄",
 		AutoComplete:     true,
-		AutoCompleteDesc: "Roll one or several dice with the possibility to compute the sum automatically because we are lazy, lazy people",
+		AutoCompleteDesc: "Roll one or several dice. ⚁ ⚄ Try /roll help for a list of possibilities.",
 		AutoCompleteHint: "20 d6 3d4 [sum]",
+		IconURL:          iconURL,
 	})
 }
 
@@ -62,14 +63,22 @@ func (p *DiceRollingPlugin) OnDeactivate() error {
 	return nil
 }
 
-func DisplayHelp() (*model.CommandResponse) {
+func GetHelpMessage() *model.CommandResponse {
+	props := map[string]interface{}{
+		"from_webhook": "true",
+	}
+
 	return &model.CommandResponse{
 		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-		Text: "- `/roll <integer>` will roll a die with the corresponding number of sides. Example: `/roll 20` rolls a 20-sided die.
-		- `/roll <N:integer>d<S:integer>` will roll N S-sided dice. Example: `/roll 5D6`
-		- `/roll <roll1> <roll2> <roll3> [...]` will roll all the requested dice. Example: `/roll 5 d8 13D20` will roll one 5-sided die, 1 8-sided die and 13 20-sided dice.
-		- `/roll <roll1> <roll2> [...] sum` will roll all the requested dice and compute the sum of all the roll results. Example: `/roll 2d6 8` will roll two 6-sided die, 1 8-sided die and display the sum of all the results.
-		- `/roll help` will show this help text.",
+		Text: "Here are some examples:\n" +
+			"- `/roll 20` to roll a 20-sided die. You can use any number.\n" +
+			"- `/roll 5D6` to roll 5 six-sided dice in one go.\n" +
+			"- `/roll 5 d8 13D20` to roll different kind of dice all at once.\n" +
+			"- Add `sum` at the end to get the sum of all the dice results as well.\n" +
+			"- `/roll help` will show this help text.\n\n" +
+			" ⚅ ⚂ Let's get rolling! ⚁ ⚄",
+		Props:   props,
+		IconURL: iconURL,
 	}
 }
 
@@ -89,7 +98,7 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 		if query == "help" || query == "--help" || query == "h" || query == "-h" {
 			return GetHelpMessage(), nil
 		}
-		
+
 		rollRequests := strings.Fields(query)
 
 		sumRequest := false
@@ -101,7 +110,7 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 			} else {
 				result, err := rollDice(rollRequest)
 				if err != nil {
-					return nil, appError("Unrecognized dice rolling request", err)
+					return nil, appError("We didn't understand what to roll. See `/roll help` for examples.", err)
 				}
 				formattedResults := ""
 				for _, roll := range result.results {
@@ -141,9 +150,8 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 
 		return &model.CommandResponse{
 			ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
-			// Username:     user.GetFullName(),
-			Attachments: attachments,
-			Props:       props,
+			Attachments:  attachments,
+			Props:        props,
 		}, nil
 	}
 
