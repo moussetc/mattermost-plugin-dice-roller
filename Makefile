@@ -20,9 +20,9 @@ $(PACKAGE_BASENAME).tar.gz: build
 	chmod a+x $(EXEC)
 	tar -czvf $@ $(EXEC) $(CONF) $(ASSETS)
 
-TAR_PLUGIN_EXE_TRANSFORM = --transform 'flags=r;s|dist/intermediate/plugin_.*|plugin.exe|'
+TAR_PLUGIN_EXE_TRANSFORM = --transform 'flags=r;s|dist/intermediate/plugin_.*|$(EXEC)|'
 ifneq (,$(findstring bsdtar,$(shell tar --version)))
-	TAR_PLUGIN_EXE_TRANSFORM = -s '|dist/intermediate/plugin_.*|plugin.exe|'
+	TAR_PLUGIN_EXE_TRANSFORM = -s '|dist/intermediate/plugin_.*|$(EXEC)|'
 endif
 
 dist-all: vendor $(SRC) $(CONF)
