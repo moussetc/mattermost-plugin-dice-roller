@@ -4,6 +4,7 @@ debug
 debug.test*
 plugin.tar.gz
 mattermost-plugin-dice-roller.exe
+mattermost-plugin-diceroller.tar.gz
 vendor/
 dist/
 .vscode/
