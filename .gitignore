@@ -9,3 +9,4 @@ vendor/
 dist/
 .vscode/
 launch.json
+coverage.txt
