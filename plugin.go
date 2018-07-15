@@ -22,10 +22,11 @@ type DiceRollingPlugin struct {
 }
 
 const (
-	trigger    string = "roll"
-	pluginPath string = "plugins/com.github.moussetc.mattermost.plugin.diceroller"
-	iconPath   string = pluginPath + "/icon.png"
-	iconURL    string = "/" + iconPath
+	trigger      string = "roll"
+	pluginPath   string = "plugins/com.github.moussetc.mattermost.plugin.diceroller"
+	iconFilename string = "icon.png"
+	iconPath     string = pluginPath + "/" + iconFilename
+	iconURL      string = "/" + iconPath
 )
 
 // OnActivate register the plugin command
@@ -35,7 +36,9 @@ func (p *DiceRollingPlugin) OnActivate(api plugin.API) error {
 
 	// Serve URL for the dice icon displayed in messages
 	p.router = mux.NewRouter()
-	p.router.Handle(iconURL, http.StripPrefix("/", http.FileServer(http.Dir(iconPath))))
+	p.router.HandleFunc("/"+iconFilename, func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, iconPath)
+	})
 
 	return api.RegisterCommand(&model.Command{
 		Trigger:          trigger,
