@@ -9,13 +9,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/plugin/rpcplugin"
 )
 
 // DiceRollingPlugin is a Mattermost plugin that adds a slash command
 // to roll dices in-chat
 type DiceRollingPlugin struct {
-	api           plugin.API
+	plugin.MattermostPlugin
 	configuration atomic.Value
 	router        *mux.Router
 	enabled       bool
@@ -30,8 +29,7 @@ const (
 )
 
 // OnActivate register the plugin command
-func (p *DiceRollingPlugin) OnActivate(api plugin.API) error {
-	p.api = api
+func (p *DiceRollingPlugin) OnActivate() error {
 	p.enabled = true
 
 	// Serve URL for the dice icon displayed in messages
@@ -40,7 +38,7 @@ func (p *DiceRollingPlugin) OnActivate(api plugin.API) error {
 		http.ServeFile(w, r, iconPath)
 	})
 
-	return api.RegisterCommand(&model.Command{
+	return p.API.RegisterCommand(&model.Command{
 		Trigger:          trigger,
 		Description:      "Roll one or more dice",
 		DisplayName:      "Dice roller ⚄",
@@ -51,7 +49,7 @@ func (p *DiceRollingPlugin) OnActivate(api plugin.API) error {
 	})
 }
 
-func (p *DiceRollingPlugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (p *DiceRollingPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Mattermost-User-Id") == "" {
 		http.Error(w, "please log in", http.StatusForbidden)
 		return
@@ -86,11 +84,11 @@ func GetHelpMessage() *model.CommandResponse {
 }
 
 // ExecuteCommand returns a post that displays the result of the dice rolls
-func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (p *DiceRollingPlugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	if !p.enabled {
 		return nil, appError("Cannot execute command while the plugin is disabled.", nil)
 	}
-	if p.api == nil {
+	if p.API == nil {
 		return nil, appError("Cannot access the plugin API.", nil)
 	}
 
@@ -133,7 +131,7 @@ func (p *DiceRollingPlugin) ExecuteCommand(args *model.CommandArgs) (*model.Comm
 		}
 
 		// Get the user to we can display the right name
-		user, userErr := p.api.GetUser(args.UserId)
+		user, userErr := p.API.GetUser(args.UserId)
 		if userErr != nil {
 			return nil, userErr
 		}
@@ -179,5 +177,5 @@ func appError(message string, err error) *model.AppError {
 
 // Install the RCP plugin
 func main() {
-	rpcplugin.Main(&DiceRollingPlugin{})
+	plugin.ClientMain(&DiceRollingPlugin{})
 }

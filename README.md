@@ -2,7 +2,9 @@
 This Mattermost plugin adds a `/roll` slash command to roll all kinds of virtual dice.
 
 ## Requirements
-- Mattermost 4.6 (to allow plugins to create slash commands) 
+- for Mattermost 5.2 or higher: use the latest v2.x.x release
+- for Mattermost 4.6 to 5.1: use the latest v1.x.x release
+- for Mattermost below: unsupported versions (plugins can't create slash commands)
 
 ## Installation and configuration
 1. Go to the [Releases page](https://github.com/moussetc/mattermost-plugin-dice-roller/releases) and download the package for your OS and architecture.

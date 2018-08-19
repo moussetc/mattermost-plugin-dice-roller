@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 
 	"github.com/stretchr/testify/assert"
 
@@ -37,16 +38,15 @@ func TestBadRequest0D5(t *testing.T) {
 }
 
 func genericWrongInputTestPlugin(t *testing.T, badInput string) {
-	api := initTestPlugin(t)
-	p := DiceRollingPlugin{}
-	assert.Nil(t, p.OnActivate(api))
+	p := initTestPlugin(t)
+	assert.Nil(t, p.OnActivate())
 
 	var command *model.CommandArgs
 	// Wrong dice requests
 	command = &model.CommandArgs{
 		Command: badInput,
 	}
-	response, err := p.ExecuteCommand(command)
+	response, err := p.ExecuteCommand(&plugin.Context{}, command)
 	assert.NotNil(t, err)
 	assert.Nil(t, response)
 }
@@ -70,15 +70,14 @@ func TestGoodRequestRoll3D1Sum(t *testing.T) {
 
 func genericCorrectInputTestPlugin(t *testing.T, expectedText string, inputDiceRequest string) {
 
-	api := initTestPlugin(t)
-	p := DiceRollingPlugin{}
-	assert.Nil(t, p.OnActivate(api))
+	p := initTestPlugin(t)
+	assert.Nil(t, p.OnActivate())
 
 	command := &model.CommandArgs{
 		Command: "/roll " + inputDiceRequest,
 		UserId:  "userid",
 	}
-	response, err := p.ExecuteCommand(command)
+	response, err := p.ExecuteCommand(&plugin.Context{}, command)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.NotNil(t, response.Attachments)
@@ -87,7 +86,7 @@ func genericCorrectInputTestPlugin(t *testing.T, expectedText string, inputDiceR
 	assert.Equal(t, expectedText, strings.TrimSpace(response.Attachments[0].Text))
 }
 
-func initTestPlugin(t *testing.T) *plugintest.API {
+func initTestPlugin(t *testing.T) *DiceRollingPlugin {
 
 	api := &plugintest.API{}
 	api.On("RegisterCommand", mock.Anything).Return(nil)
@@ -97,15 +96,17 @@ func initTestPlugin(t *testing.T) *plugintest.API {
 		Nickname: "User",
 	}, (*model.AppError)(nil))
 
-	return api
+	p := DiceRollingPlugin{}
+	p.SetAPI(api)
+
+	return &p
 }
 
 func TestLifecyclePlugin(t *testing.T) {
 
-	api := initTestPlugin(t)
-	p := DiceRollingPlugin{}
+	p := initTestPlugin(t)
 
-	assert.Nil(t, p.OnActivate(api))
+	assert.Nil(t, p.OnActivate())
 
 	// TODO : test executecommand while deactivated ?
 
