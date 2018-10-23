@@ -34,8 +34,8 @@ func rollDice(code string) (*diceRolls, error) {
 			return nil, fmt.Errorf("Could not parse a number of dice from '%s'", numberStr)
 		}
 		if number > 20 {
-			// Clamp it to sanity.
-			number = 20
+			// Complain about insanity.
+            return nil, fmt.Errorf("'%s' is way too many dice; maximum is 20.", numberStr)
 		}
 	}
 	sidesStr := submatches[0][3]
@@ -44,8 +44,8 @@ func rollDice(code string) (*diceRolls, error) {
 		return nil, fmt.Errorf("Could not parse a number of sides from '%s'", sidesStr)
 	}
 	if sides > 100 {
-		// Clamp it.
-		sides = 100
+		// Complain about insanity.
+        return nil, fmt.Errorf("'%s' is too many sides; maximum is 100.", sidesStr)
 	}
 
 	rolls := make([]int, number)
