@@ -35,7 +35,7 @@ func rollDice(code string) (*diceRolls, error) {
 		}
 		if number > 20 {
 			// Clamp it to sanity.
-			number := 20
+			number = 20
 		}
 	}
 	sidesStr := submatches[0][3]
@@ -45,7 +45,7 @@ func rollDice(code string) (*diceRolls, error) {
 	}
 	if sides > 100 {
 		// Clamp it.
-		sides := 100
+		sides = 100
 	}
 
 	rolls := make([]int, number)
