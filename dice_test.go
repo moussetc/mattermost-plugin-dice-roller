@@ -8,8 +8,21 @@ import (
 
 func TestRange(t *testing.T) {
 	res, err := rollDice("1000d20")
+	assert.NotNil(t, err)
+	assert.Nil(t, res)
+}
+
+func TestRange1(t *testing.T) {
+	res, err := rollDice("1000d1")
+	assert.NotNil(t, err)
+	assert.Nil(t, res)
+}
+
+func TestRange2(t *testing.T) {
+	res, err := rollDice("10d20")
 	assert.Nil(t, err)
 	assert.NotNil(t, res)
+	assert.Equal(t, 10, len(res.results))
 	for _, val := range res.results {
 		if val <= 0 || val > 20 {
 			t.Errorf("Value '%d' is not valid for a D20 roll", val)
@@ -17,11 +30,11 @@ func TestRange(t *testing.T) {
 	}
 }
 
-func TestRange1(t *testing.T) {
-	res, err := rollDice("1000d1")
+func TestRange3(t *testing.T) {
+	res, err := rollDice("10d1")
 	assert.Nil(t, err)
 	assert.NotNil(t, res)
-	assert.Equal(t, 20, len(res.results))
+	assert.Equal(t, 10, len(res.results))
 	for _, val := range res.results {
 		if val != 1 {
 			t.Errorf("Value '%d' is not valid for a D1 roll", val)
@@ -46,7 +59,7 @@ func Test5d20(t *testing.T) {
 }
 
 func Test50d1(t *testing.T) {
-	res, err := rollDice("50D1")
+	res, err := rollDice("20D1")
 	assert.NotNil(t, res)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, res.dieSides)
@@ -86,3 +99,10 @@ func TestHahaha(t *testing.T) {
 	assert.Nil(t, res)
 	assert.NotNil(t, err)
 }
+
+func TestBigD(t *testing.T) {
+	res, err := rollDice("D1000")
+	assert.Nil(t, res)
+	assert.NotNil(t, err)
+}
+
