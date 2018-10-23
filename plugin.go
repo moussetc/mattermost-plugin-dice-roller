@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+    "math/rand"
 	"net/http"
 	"strings"
 	"sync/atomic"
@@ -177,5 +178,6 @@ func appError(message string, err error) *model.AppError {
 
 // Install the RCP plugin
 func main() {
+    rand.Seed(time.Now().UnixNano())
 	plugin.ClientMain(&DiceRollingPlugin{})
 }

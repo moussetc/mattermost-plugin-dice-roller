@@ -50,6 +50,5 @@ func rollDice(code string) (*diceRolls, error) {
 }
 
 func rollDie(sides int) int {
-	rand.Seed(time.Now().UnixNano())
 	return 1 + rand.Intn(sides)
 }
