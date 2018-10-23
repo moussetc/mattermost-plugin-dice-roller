@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-    "math/rand"
+	"math/rand"
 	"net/http"
 	"strings"
 	"sync/atomic"
-    "time"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/model"
@@ -179,6 +179,6 @@ func appError(message string, err error) *model.AppError {
 
 // Install the RCP plugin
 func main() {
-    rand.Seed(time.Now().UnixNano())
+	rand.Seed(time.Now().UnixNano())
 	plugin.ClientMain(&DiceRollingPlugin{})
 }
