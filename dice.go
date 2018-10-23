@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"regexp"
 	"strconv"
-	"time"
 )
 
 type diceRolls struct {

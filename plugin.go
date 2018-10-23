@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"sync/atomic"
+    "time"
 
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/model"
