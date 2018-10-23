@@ -33,11 +33,19 @@ func rollDice(code string) (*diceRolls, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Could not parse a number of dice from '%s'", numberStr)
 		}
+		if number > 20 {
+			// Clamp it to sanity.
+			number := 20
+		}
 	}
 	sidesStr := submatches[0][3]
 	sides, err := strconv.Atoi(sidesStr)
 	if err != nil {
 		return nil, fmt.Errorf("Could not parse a number of sides from '%s'", sidesStr)
+	}
+	if sides > 100 {
+		// Clamp it.
+		sides := 100
 	}
 
 	rolls := make([]int, number)
