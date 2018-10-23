@@ -21,7 +21,7 @@ func TestRange1(t *testing.T) {
 	res, err := rollDice("1000d1")
 	assert.Nil(t, err)
 	assert.NotNil(t, res)
-	assert.Equal(t, 1000, len(res.results))
+	assert.Equal(t, 20, len(res.results))
 	for _, val := range res.results {
 		if val != 1 {
 			t.Errorf("Value '%d' is not valid for a D1 roll", val)
@@ -50,7 +50,7 @@ func Test50d1(t *testing.T) {
 	assert.NotNil(t, res)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, res.dieSides)
-	assert.Equal(t, 50, len(res.results))
+	assert.Equal(t, 20, len(res.results))
 }
 
 func Test1(t *testing.T) {
