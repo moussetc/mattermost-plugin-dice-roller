@@ -113,7 +113,7 @@ func (p *DiceRollingPlugin) ExecuteCommand(c *plugin.Context, args *model.Comman
 			} else {
 				result, err := rollDice(rollRequest)
 				if err != nil {
-					return nil, appError("We didn't understand what to roll. See `/roll help` for examples.", err)
+					return nil, appError(fmt.Sprintf("%s See `/roll help` for examples.", err.Error()), err)
 				}
 				formattedResults := ""
 				for _, roll := range result.results {

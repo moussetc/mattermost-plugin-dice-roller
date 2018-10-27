@@ -16,6 +16,7 @@ const (
 	sidesRegexp string = "([1-9]\\d*)"
 	dieRegexp   string = "[dD]" + sidesRegexp
 	diceRegexp  string = "([1-9]\\d*)?" + dieRegexp
+	maxDice     int    = 100
 )
 
 func rollDice(code string) (*diceRolls, error) {
@@ -33,9 +34,9 @@ func rollDice(code string) (*diceRolls, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Could not parse a number of dice from '%s'", numberStr)
 		}
-		if number > 20 {
+		if number > maxDice {
 			// Complain about insanity.
-			return nil, appError("Too many dice.", fmt.Errorf("'%s' is way too many dice; maximum is 20.", numberStr))
+			return nil, fmt.Errorf(fmt.Sprintf("'%s' is too many dice; maximum is %d.", numberStr, maxDice))
 		}
 	}
 	sidesStr := submatches[0][3]
