@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -106,4 +107,18 @@ func TestBigD(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 1000, res.dieSides)
 	assert.Equal(t, 1, len(res.results))
+}
+
+func TestManyD(t *testing.T) {
+	res, err := rollDice(fmt.Sprintf("%dD10", maxDice))
+	assert.NotNil(t, res)
+	assert.Nil(t, err)
+	assert.Equal(t, 10, res.dieSides)
+	assert.Equal(t, maxDice, len(res.results))
+}
+
+func TestTooManyD(t *testing.T) {
+	res, err := rollDice(fmt.Sprintf("%dD10", maxDice + 1))
+	assert.Nil(t, res)
+	assert.NotNil(t, err)
 }
