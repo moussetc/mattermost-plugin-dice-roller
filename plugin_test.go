@@ -66,6 +66,21 @@ func TestGoodRequestRoll3D1Sum(t *testing.T) {
 	genericCorrectInputTestPlugin(t, "*rolls 3d1:* **1 1 1 **\n**Total = 3**", "3d1 sum")
 }
 
+func TestGoodRequestHelp(t *testing.T) {
+    p := initTestPlugin(t)
+    assert.Nil(t, p.OnActivate())
+
+    command := &model.CommandArgs{
+        Command: "/roll help",
+        UserId:  "userid",
+    }
+
+    response, err := p.ExecuteCommand(&plugin.Context{}, command)
+    assert.Nil(t, err)
+    assert.NotNil(t, response)
+    assert.Nil(t, response.Attachments)
+}
+
 // TODO : how do you test the random result ? by mocking the Dice API I guess
 
 func genericCorrectInputTestPlugin(t *testing.T, expectedText string, inputDiceRequest string) {
