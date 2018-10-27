@@ -102,7 +102,8 @@ func TestHahaha(t *testing.T) {
 
 func TestBigD(t *testing.T) {
 	res, err := rollDice("D1000")
-	assert.Nil(t, res)
-	assert.NotNil(t, err)
+	assert.NotNil(t, res)
+	assert.Nil(t, err)
+	assert.Equal(t, 1000, res.dieSides)
+	assert.Equal(t, 1, len(res.results))
 }
-
