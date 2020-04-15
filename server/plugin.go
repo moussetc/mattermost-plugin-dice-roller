@@ -5,40 +5,38 @@ import (
 	"math/rand"
 	"net/http"
 	"strings"
-	"sync/atomic"
+	"sync"
 	"time"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
-
-// DiceRollingPlugin is a Mattermost plugin that adds a slash command
-// to roll dices in-chat
-type DiceRollingPlugin struct {
-	plugin.MattermostPlugin
-	configuration atomic.Value
-	router        *mux.Router
-	enabled       bool
-}
 
 const (
 	trigger      string = "roll"
-	pluginPath   string = "plugins/com.github.moussetc.mattermost.plugin.diceroller"
-	iconFilename string = "icon.png"
-	iconPath     string = pluginPath + "/" + iconFilename
-	iconURL      string = "/" + iconPath
+	diceFilename string = "icon.png"
 )
 
-// OnActivate register the plugin command
-func (p *DiceRollingPlugin) OnActivate() error {
-	p.enabled = true
+// Plugin implements the interface expected by the Mattermost server to communicate between the server and plugin processes.
+type Plugin struct {
+	plugin.MattermostPlugin
 
-	// Serve URL for the dice icon displayed in messages
-	p.router = mux.NewRouter()
-	p.router.HandleFunc("/"+iconFilename, func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, iconPath)
-	})
+	// configurationLock synchronizes access to the configuration.
+	configurationLock sync.RWMutex
+
+	// configuration is the active plugin configuration. Consult getConfiguration and
+	// setConfiguration for usage.
+	configuration *configuration
+
+	// URL of the dice icon
+	diceURL string
+}
+
+func (p *Plugin) OnActivate() error {
+
+	rand.Seed(time.Now().UnixNano())
+
+	p.diceURL = fmt.Sprintf("/plugins/%s/public/%s", manifest.Id, diceFilename)
 
 	return p.API.RegisterCommand(&model.Command{
 		Trigger:          trigger,
@@ -47,26 +45,11 @@ func (p *DiceRollingPlugin) OnActivate() error {
 		AutoComplete:     true,
 		AutoCompleteDesc: "Roll one or several dice. ⚁ ⚄ Try /roll help for a list of possibilities.",
 		AutoCompleteHint: "20 d6 3d4 [sum]",
-		IconURL:          iconURL,
+		IconURL:          p.diceURL,
 	})
 }
 
-func (p *DiceRollingPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("Mattermost-User-Id") == "" {
-		http.Error(w, "please log in", http.StatusForbidden)
-		return
-	}
-
-	p.router.ServeHTTP(w, r)
-}
-
-// OnDeactivate handles plugin deactivation
-func (p *DiceRollingPlugin) OnDeactivate() error {
-	p.enabled = false
-	return nil
-}
-
-func GetHelpMessage() *model.CommandResponse {
+func (p *Plugin) GetHelpMessage() *model.CommandResponse {
 	props := map[string]interface{}{
 		"from_webhook": "true",
 	}
@@ -81,15 +64,12 @@ func GetHelpMessage() *model.CommandResponse {
 			"- `/roll help` will show this help text.\n\n" +
 			" ⚅ ⚂ Let's get rolling! ⚁ ⚄",
 		Props:   props,
-		IconURL: iconURL,
+		IconURL: p.diceURL,
 	}
 }
 
 // ExecuteCommand returns a post that displays the result of the dice rolls
-func (p *DiceRollingPlugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	if !p.enabled {
-		return nil, appError("Cannot execute command while the plugin is disabled.", nil)
-	}
+func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	if p.API == nil {
 		return nil, appError("Cannot access the plugin API.", nil)
 	}
@@ -99,7 +79,7 @@ func (p *DiceRollingPlugin) ExecuteCommand(c *plugin.Context, args *model.Comman
 		query := strings.TrimSpace((strings.Replace(args.Command, cmd, "", 1)))
 
 		if query == "help" || query == "--help" || query == "h" || query == "-h" {
-			return GetHelpMessage(), nil
+			return p.GetHelpMessage(), nil
 		}
 
 		rollRequests := strings.Fields(query)
@@ -139,10 +119,10 @@ func (p *DiceRollingPlugin) ExecuteCommand(c *plugin.Context, args *model.Comman
 		}
 
 		attachments := []*model.SlackAttachment{
-			&model.SlackAttachment{
+			{
 				Text:     text,
 				Fallback: fmt.Sprintf("%s rolled some dice!", user.GetFullName()),
-				ThumbURL: iconURL,
+				ThumbURL: p.diceURL,
 			},
 		}
 
@@ -175,10 +155,4 @@ func appError(message string, err error) *model.AppError {
 		errorMessage = err.Error()
 	}
 	return model.NewAppError("Dice Roller Plugin", message, nil, errorMessage, http.StatusBadRequest)
-}
-
-// Install the RCP plugin
-func main() {
-	rand.Seed(time.Now().UnixNano())
-	plugin.ClientMain(&DiceRollingPlugin{})
 }

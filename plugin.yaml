@@ -1,9 +1,0 @@
-id: com.github.moussetc.mattermost.plugin.diceroller
-name: Dice Roller ⚄
-description: Add some dice rolling to Mattermost
-version: '2.0.1'
-backend:
-    executable: plugin
-settings_schema:
-    footer: |
-        * To report an issue, make a suggestion or a contribution, or fork your own version of the plugin, [check the repository](https://github.com/moussetc/mattermost-plugin-dice-roller).

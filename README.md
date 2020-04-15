@@ -2,7 +2,8 @@
 This Mattermost plugin adds a `/roll` slash command to roll all kinds of virtual dice.
 
 ## Requirements
-- for Mattermost 5.2 or higher: use the latest v2.x.x release
+- for Mattermost 5.12 or higher: use the latest v3.x.x release
+- for Mattermost 5.2 to 5.11: use the latest v2.x.x release
 - for Mattermost 4.6 to 5.1: use the latest v1.x.x release
 - for Mattermost below: unsupported versions (plugins can't create slash commands)
 
@@ -37,9 +38,22 @@ If you need to enable & configure this plugin directly in the Mattermost configu
 - `/roll help` will show a reminder of how to use the plugin.
 
 ## Development
-Run make vendor to install dependencies, then develop like any other Go project, using go test, go build, etc.
+Build the plugin with the following command:
+```
+make
+```
+This will produce a single plugin package (with support for multiple architectures) in `dist/com.github.moussetc.mattermost.plugin.diceroller-X.X.X.tar.gz`
 
-If you want to create a fully bundled plugin that will run on a local server, you can use `make mattermost-plugin-diceroller.tar.gz`.
+To automate deploying and enabling the plugin to your server, add the following lines at the beginning of the Makefile (it requires [http](https://httpie.org/) to be installed) and configure your admin login&password:
+```
+export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
+export MM_ADMIN_USERNAME=admin
+export MM_ADMIN_PASSWORD=password
+```
+and use this command:
+```
+make deploy
+```
 
 ## What's next?
 - Better code testing
