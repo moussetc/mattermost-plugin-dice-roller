@@ -28,15 +28,13 @@ type Plugin struct {
 	// setConfiguration for usage.
 	configuration *configuration
 
-	// URL of the dice icon
-	diceURL string
+	//BotId of the created bot account for dice rolling
+	diceBotId string
 }
 
 func (p *Plugin) OnActivate() error {
 
 	rand.Seed(time.Now().UnixNano())
-
-	p.diceURL = fmt.Sprintf("/plugins/%s/public/%s", manifest.Id, diceFilename)
 
 	return p.API.RegisterCommand(&model.Command{
 		Trigger:          trigger,
@@ -45,7 +43,6 @@ func (p *Plugin) OnActivate() error {
 		AutoComplete:     true,
 		AutoCompleteDesc: "Roll one or several dice. ⚁ ⚄ Try /roll help for a list of possibilities.",
 		AutoCompleteHint: "20 d6 3d4 [sum]",
-		IconURL:          p.diceURL,
 	})
 }
 
@@ -63,8 +60,7 @@ func (p *Plugin) GetHelpMessage() *model.CommandResponse {
 			"- Add `sum` at the end to get the sum of all the dice results as well.\n" +
 			"- `/roll help` will show this help text.\n\n" +
 			" ⚅ ⚂ Let's get rolling! ⚁ ⚄",
-		Props:   props,
-		IconURL: p.diceURL,
+		Props: props,
 	}
 }
 
@@ -82,63 +78,69 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			return p.GetHelpMessage(), nil
 		}
 
-		rollRequests := strings.Fields(query)
-
-		sumRequest := false
-		text := ""
-		sum := 0
-		for _, rollRequest := range rollRequests {
-			if rollRequest == "sum" {
-				sumRequest = true
-			} else {
-				result, err := rollDice(rollRequest)
-				if err != nil {
-					return nil, appError(fmt.Sprintf("%s See `/roll help` for examples.", err.Error()), err)
-				}
-				formattedResults := ""
-				for _, roll := range result.results {
-					formattedResults += fmt.Sprintf("%d ", roll)
-					sum += roll
-				}
-				text += fmt.Sprintf("*rolls %s:* **%s**\n", rollRequest, formattedResults)
-			}
+		post, generatePostError := p.generateDicePost(query, args.UserId, args.ChannelId, args.RootId)
+		if generatePostError != nil {
+			return nil, generatePostError
+		}
+		_, createPostError := p.API.CreatePost(post)
+		if createPostError != nil {
+			return nil, createPostError
 		}
 
-		if len(rollRequests) == 0 || sumRequest && len(rollRequests) == 1 {
-			return nil, appError("No roll request arguments found (such as '20', '4d6', etc.).", nil)
-		}
-
-		if sumRequest {
-			text += fmt.Sprintf("**Total = %d**", sum)
-		}
-
-		// Get the user to we can display the right name
-		user, userErr := p.API.GetUser(args.UserId)
-		if userErr != nil {
-			return nil, userErr
-		}
-
-		attachments := []*model.SlackAttachment{
-			{
-				Text:     text,
-				Fallback: fmt.Sprintf("%s rolled some dice!", user.GetFullName()),
-				ThumbURL: p.diceURL,
-			},
-		}
-
-		props := map[string]interface{}{
-			"from_webhook":  "true",
-			"use_user_icon": "true",
-		}
-
-		return &model.CommandResponse{
-			ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
-			Attachments:  attachments,
-			Props:        props,
-		}, nil
+		return &model.CommandResponse{}, nil
 	}
 
 	return nil, appError("Expected trigger "+cmd+" but got "+args.Command, nil)
+}
+
+func (p *Plugin) generateDicePost(query, userId, channelId, rootId string) (*model.Post, *model.AppError) {
+
+	// Get the user to we can display the right name
+	user, userErr := p.API.GetUser(userId)
+	if userErr != nil {
+		return nil, userErr
+	}
+	displayName := user.Nickname
+	if displayName == "" {
+		displayName = user.Username
+	}
+
+	sumRequest := false
+	text := ""
+	sum := 0
+
+	rollRequests := strings.Fields(query)
+	for _, rollRequest := range rollRequests {
+		if rollRequest == "sum" {
+			sumRequest = true
+		} else {
+			result, err := rollDice(rollRequest)
+			if err != nil {
+				return nil, appError(fmt.Sprintf("%s See `/roll help` for examples.", err.Error()), err)
+			}
+			formattedResults := ""
+			for _, roll := range result.results {
+				formattedResults += fmt.Sprintf("%d ", roll)
+				sum += roll
+			}
+			text += fmt.Sprintf("**%s** *rolls %s:* **%s**\n", displayName, rollRequest, formattedResults)
+		}
+	}
+
+	if len(rollRequests) == 0 || sumRequest && len(rollRequests) == 1 {
+		return nil, appError("No roll request arguments found (such as '20', '4d6', etc.).", nil)
+	}
+
+	if sumRequest {
+		text += fmt.Sprintf("**Total = %d**", sum)
+	}
+
+	return &model.Post{
+		UserId:    p.diceBotId,
+		ChannelId: channelId,
+		RootId:    rootId,
+		Message:   text,
+	}, nil
 }
 
 type rollAPIResult struct {

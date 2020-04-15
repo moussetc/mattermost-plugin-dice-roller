@@ -38,7 +38,7 @@ func TestBadRequest0D5(t *testing.T) {
 }
 
 func genericWrongInputTestPlugin(t *testing.T, badInput string) {
-	p := initTestPlugin(t)
+	p, _ := initTestPlugin(t)
 	assert.Nil(t, p.OnActivate())
 
 	var command *model.CommandArgs
@@ -52,22 +52,22 @@ func genericWrongInputTestPlugin(t *testing.T, badInput string) {
 }
 
 func TestGoodRequestRoll1(t *testing.T) {
-	genericCorrectInputTestPlugin(t, "*rolls 1:* **1 **", "1")
+	genericCorrectInputTestPlugin(t, "**User** *rolls 1:* **1 **", "1")
 }
 
 func TestGoodRequestRoll5D1(t *testing.T) {
 	genericCorrectInputTestPlugin(
 		t,
-		"*rolls 5d1:* **1 1 1 1 1 **",
+		"**User** *rolls 5d1:* **1 1 1 1 1 **",
 		"5d1")
 }
 
 func TestGoodRequestRoll3D1Sum(t *testing.T) {
-	genericCorrectInputTestPlugin(t, "*rolls 3d1:* **1 1 1 **\n**Total = 3**", "3d1 sum")
+	genericCorrectInputTestPlugin(t, "**User** *rolls 3d1:* **1 1 1 **\n**Total = 3**", "3d1 sum")
 }
 
 func TestGoodRequestHelp(t *testing.T) {
-	p := initTestPlugin(t)
+	p, _ := initTestPlugin(t)
 	assert.Nil(t, p.OnActivate())
 
 	command := &model.CommandArgs{
@@ -81,11 +81,13 @@ func TestGoodRequestHelp(t *testing.T) {
 	assert.Nil(t, response.Attachments)
 }
 
-// TODO : how do you test the random result ? by mocking the Dice API I guess
-
 func genericCorrectInputTestPlugin(t *testing.T, expectedText string, inputDiceRequest string) {
 
-	p := initTestPlugin(t)
+	p, api := initTestPlugin(t)
+	var post *model.Post
+	api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(nil, nil).Run(func(args mock.Arguments) {
+		post = args.Get(0).(*model.Post)
+	})
 	assert.Nil(t, p.OnActivate())
 
 	command := &model.CommandArgs{
@@ -95,13 +97,12 @@ func genericCorrectInputTestPlugin(t *testing.T, expectedText string, inputDiceR
 	response, err := p.ExecuteCommand(&plugin.Context{}, command)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
-	assert.NotNil(t, response.Attachments)
-	assert.Equal(t, 1, len(response.Attachments))
-	assert.NotNil(t, response.Attachments[0])
-	assert.Equal(t, expectedText, strings.TrimSpace(response.Attachments[0].Text))
+	assert.NotNil(t, post)
+	assert.NotNil(t, post.Message)
+	assert.Equal(t, expectedText, strings.TrimSpace(post.Message))
 }
 
-func initTestPlugin(t *testing.T) *Plugin {
+func initTestPlugin(t *testing.T) (*Plugin, *plugintest.API) {
 
 	api := &plugintest.API{}
 	api.On("RegisterCommand", mock.Anything).Return(nil)
@@ -114,10 +115,5 @@ func initTestPlugin(t *testing.T) *Plugin {
 	p := Plugin{}
 	p.SetAPI(api)
 
-	return &p
-}
-
-func TestLifecyclePlugin(t *testing.T) {
-	p := initTestPlugin(t)
-	assert.Nil(t, p.OnActivate())
+	return &p, api
 }

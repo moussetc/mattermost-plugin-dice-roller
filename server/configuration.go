@@ -1,9 +1,13 @@
 package main
 
 import (
+	"path/filepath"
 	"reflect"
 
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server
@@ -78,6 +82,17 @@ func (p *Plugin) OnConfigurationChange() error {
 	}
 
 	p.setConfiguration(configuration)
+
+	diceBotId, ensureBotError := p.Helpers.EnsureBot(&model.Bot{
+		Username:    "dicerollerbot",
+		DisplayName: "Dice Roller",
+		Description: "A bot account created by " + manifest.Name + " plugin.",
+	}, plugin.ProfileImagePath(filepath.Join("assets", "icon.png")))
+	if ensureBotError != nil {
+		return errors.Wrap(ensureBotError, "failed to ensure dice bot.")
+	}
+
+	p.diceBotId = diceBotId
 
 	return nil
 }
