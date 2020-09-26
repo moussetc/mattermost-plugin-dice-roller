@@ -103,11 +103,16 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*mod
 		displayName = user.Username
 	}
 
-	text := fmt.Sprintf("**%s** rolls:\n", displayName)
+	text := fmt.Sprintf("**%s** rolls *%s* = ", displayName, query)
 	sum := 0
-
 	rollRequests := strings.Fields(query)
-	for _, rollRequest := range rollRequests {
+	if len(rollRequests) == 0 || query == "sum" {
+		return nil, appError("No roll request arguments found (such as '20', '4d6', etc.).", nil)
+	}
+	singleResultCount := 0
+	numericDiceCount := 0
+	formattedRollDetails := make([]string, len(rollRequests))
+	for i, rollRequest := range rollRequests {
 		// Ignore the 'sum' keyword, remnant of a previous version
 		// kept for the compatibility
 		if rollRequest != "sum" {
@@ -115,27 +120,30 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*mod
 			if err != nil {
 				return nil, appError(fmt.Sprintf("%s See `/roll help` for examples.", err.Error()), err)
 			}
-			formattedResults := ""
 			if result.rollType == rollTypeNumeric {
+				numericDiceCount++
+				rollDetails := fmt.Sprintf("%s: ", rollRequest)
+				singleResultCount += len(result.results)
 				for _, roll := range result.results {
-					formattedResults += fmt.Sprintf("%d ", roll)
+					rollDetails += fmt.Sprintf("%d ", roll)
 					sum += roll
 				}
-				text += fmt.Sprintf("- %s: **%s**\n", rollRequest, formattedResults)
+				formattedRollDetails[i] = strings.TrimSpace(rollDetails)
 			} else {
-				formattedResults += fmt.Sprintf("%+d ", result.sumModifier)
-				text += fmt.Sprintf("- **%s**\n", formattedResults)
+				formattedRollDetails[i] = fmt.Sprintf("%+d", result.sumModifier)
 				sum += result.sumModifier
 			}
 		}
 	}
 
-	if len(rollRequests) == 0 || query == "sum" {
-		return nil, appError("No roll request arguments found (such as '20', '4d6', etc.).", nil)
-	}
-
 	// Always display the total
-	text += fmt.Sprintf("**Total = %d**", sum)
+	text += fmt.Sprintf("**%d**", sum)
+
+	// Display roll details only of necessary
+	if singleResultCount > 1 {
+		formattedRollDetails = filterEmptyString(formattedRollDetails)
+		text += fmt.Sprintf("\n- %s", strings.Join(formattedRollDetails, "\n- "))
+	}
 
 	return &model.Post{
 		UserId:    p.diceBotID,
@@ -143,6 +151,16 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*mod
 		RootId:    rootID,
 		Message:   text,
 	}, nil
+}
+
+func filterEmptyString(arr []string) []string {
+	result := []string{}
+	for _, val := range arr {
+		if val != "" {
+			result = append(result, val)
+		}
+	}
+	return result
 }
 
 func appError(message string, err error) *model.AppError {

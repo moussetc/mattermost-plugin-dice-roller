@@ -64,12 +64,13 @@ func TestGoodInputs(t *testing.T) {
 		inputDiceRequest string
 		expectedText     string
 	}{
-		{inputDiceRequest: "3d1 sum", expectedText: "**User** rolls:\n- 3d1: **1 1 1 **\n**Total = 3**"},
-		{inputDiceRequest: "5d1", expectedText: "**User** rolls:\n- 5d1: **1 1 1 1 1 **\n**Total = 5**"},
-		{inputDiceRequest: "1", expectedText: "**User** rolls:\n- 1: **1 **\n**Total = 1**"},
-		{inputDiceRequest: "+42", expectedText: "**User** rolls:\n- **+42 **\n**Total = 42**"},
-		{inputDiceRequest: "4d1+3", expectedText: "**User** rolls:\n- 4d1+3: **4 4 4 4 **\n**Total = 16**"},
-		{inputDiceRequest: "4d1 +3", expectedText: "**User** rolls:\n- 4d1: **1 1 1 1 **\n- **+3 **\n**Total = 7**"},
+		{inputDiceRequest: "3d1 sum", expectedText: "**User** rolls *3d1 sum* = **3**\n- 3d1: 1 1 1"},
+		{inputDiceRequest: "5d1", expectedText: "**User** rolls *5d1* = **5**\n- 5d1: 1 1 1 1 1"},
+		{inputDiceRequest: "1", expectedText: "**User** rolls *1* = **1**"},
+		{inputDiceRequest: "+42", expectedText: "**User** rolls *+42* = **42**"},
+		{inputDiceRequest: "4d1+3", expectedText: "**User** rolls *4d1+3* = **16**\n- 4d1+3: 4 4 4 4"},
+		{inputDiceRequest: "4d1 +3", expectedText: "**User** rolls *4d1 +3* = **7**\n- 4d1: 1 1 1 1\n- +3"},
+		{inputDiceRequest: "4d1 2d1 +42", expectedText: "**User** rolls *4d1 2d1 +42* = **48**\n- 4d1: 1 1 1 1\n- 2d1: 1 1\n- +42"},
 	}
 	for _, testCase := range testCases {
 		command := &model.CommandArgs{
