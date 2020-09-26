@@ -57,7 +57,6 @@ func (p *Plugin) GetHelpMessage() *model.CommandResponse {
 			"- `/roll 5D6+3` to roll five 6-sided dice and add 3 the result of each die.\n" +
 			"- `/roll 5D6 +3` (with a space) to roll five 6-sided dice and add 3 the total.\n" +
 			"- `/roll 5 d8 13D20` to roll different dice at the same time.\n" +
-			"- Add `sum` at the end to get the sum of all the dice results as well.\n" +
 			"- `/roll help` will show this help text.\n\n" +
 			" ⚅ ⚂ Let's get rolling! ⚁ ⚄",
 		Props: props,
@@ -104,15 +103,14 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*mod
 		displayName = user.Username
 	}
 
-	sumRequest := false
 	text := fmt.Sprintf("**%s** rolls:\n", displayName)
 	sum := 0
 
 	rollRequests := strings.Fields(query)
 	for _, rollRequest := range rollRequests {
-		if rollRequest == "sum" {
-			sumRequest = true
-		} else {
+		// Ignore the 'sum' keyword, remnant of a previous version
+		// kept for the compatibility
+		if rollRequest != "sum" {
 			result, err := rollDice(rollRequest)
 			if err != nil {
 				return nil, appError(fmt.Sprintf("%s See `/roll help` for examples.", err.Error()), err)
@@ -128,8 +126,6 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*mod
 				formattedResults += fmt.Sprintf("%+d ", result.sumModifier)
 				text += fmt.Sprintf("- **%s**\n", formattedResults)
 				sum += result.sumModifier
-				// If there's a modifier, there's probably the need for a sum
-				sumRequest = true
 			}
 		}
 	}
@@ -138,9 +134,8 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*mod
 		return nil, appError("No roll request arguments found (such as '20', '4d6', etc.).", nil)
 	}
 
-	if sumRequest {
-		text += fmt.Sprintf("**Total = %d**", sum)
-	}
+	// Always display the total
+	text += fmt.Sprintf("**Total = %d**", sum)
 
 	return &model.Post{
 		UserId:    p.diceBotID,
