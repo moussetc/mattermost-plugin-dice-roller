@@ -40,7 +40,7 @@ func (p *Plugin) OnActivate() error {
 		DisplayName:      "Dice roller ⚄",
 		AutoComplete:     true,
 		AutoCompleteDesc: "Roll one or several dice. ⚁ ⚄ Try /roll help for a list of possibilities.",
-		AutoCompleteHint: "20 d6 3d4 [sum]",
+		AutoCompleteHint: "20 d6+4 3d4 [sum]",
 	})
 }
 
@@ -53,8 +53,9 @@ func (p *Plugin) GetHelpMessage() *model.CommandResponse {
 		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		Text: "Here are some examples:\n" +
 			"- `/roll 20` to roll a 20-sided die. You can use any number.\n" +
-			"- `/roll 5D6` to roll 5 six-sided dice in one go.\n" +
-			"- `/roll 5 d8 13D20` to roll different kind of dice all at once.\n" +
+			"- `/roll 5D6` to roll five 6-sided dice in one go.\n" +
+			"- `/roll 5D6+3` to roll five 6-sided dice and add 3 the result of each die.\n" +
+			"- `/roll 5 d8 13D20` to roll different kinds of dice all at once.\n" +
 			"- Add `sum` at the end to get the sum of all the dice results as well.\n" +
 			"- `/roll help` will show this help text.\n\n" +
 			" ⚅ ⚂ Let's get rolling! ⚁ ⚄",

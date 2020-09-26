@@ -13,41 +13,59 @@ type diceRolls struct {
 }
 
 const (
-	sidesRegexp string = "([1-9]\\d*)"
-	dieRegexp   string = "[dD]" + sidesRegexp
-	diceRegexp  string = "([1-9]\\d*)?" + dieRegexp
-	maxDice     int    = 100
+	maxDice int = 100
 )
 
 func rollDice(code string) (*diceRolls, error) {
-	re := regexp.MustCompile("^(([1-9]\\d*)?[dD])?([1-9]\\d*)$")
-	if !re.MatchString(code) {
+	// <optional number of dice><optional 'd' or 'D'><number of sides><optional modifier>
+	re := regexp.MustCompile(`^((?P<number>([1-9]\d*))?[dD])?(?P<sides>[1-9]\d*)(?P<modifier>[+-]\d+)?$`)
+	matchIndexes := re.FindStringSubmatch(code)
+	if matchIndexes == nil {
 		return nil, fmt.Errorf("'%s' is not a valid die code", code)
 	}
-	submatches := re.FindAllStringSubmatch(code, -1)
-	numberStr := submatches[0][2]
+	var numberStr string
+	var sidesStr string
+	var modifierStr string
+	for i, name := range re.SubexpNames() {
+		switch name {
+		case "number":
+			numberStr = matchIndexes[i]
+		case "sides":
+			sidesStr = matchIndexes[i]
+		case "modifier":
+			modifierStr = matchIndexes[i]
+		}
+	}
 
 	number := 1
 	if numberStr != "" {
 		var err error
 		number, err = strconv.Atoi(numberStr)
 		if err != nil {
-			return nil, fmt.Errorf("Could not parse a number of dice from '%s'", numberStr)
+			return nil, fmt.Errorf("could not parse a number of dice from '%s'", numberStr)
 		}
 		if number > maxDice {
 			// Complain about insanity.
 			return nil, fmt.Errorf(fmt.Sprintf("'%s' is too many dice; maximum is %d.", numberStr, maxDice))
 		}
 	}
-	sidesStr := submatches[0][3]
+
 	sides, err := strconv.Atoi(sidesStr)
 	if err != nil {
-		return nil, fmt.Errorf("Could not parse a number of sides from '%s'", sidesStr)
+		return nil, fmt.Errorf("could not parse a number of sides from '%s'", sidesStr)
+	}
+
+	modifier := 0
+	if modifierStr != "" {
+		modifier, err = strconv.Atoi(modifierStr)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse a modifier from '%s'", modifierStr)
+		}
 	}
 
 	rolls := make([]int, number)
 	for i := 0; i < number; i++ {
-		rolls[i] = rollDie(sides)
+		rolls[i] = rollDie(sides) + modifier
 	}
 
 	return &diceRolls{sides, rolls}, nil

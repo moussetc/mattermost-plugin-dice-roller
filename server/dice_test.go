@@ -59,7 +59,7 @@ func Test5d20(t *testing.T) {
 	assert.Equal(t, 5, len(res.results))
 }
 
-func Test50d1(t *testing.T) {
+func Test20d1(t *testing.T) {
 	res, err := rollDice("20D1")
 	assert.NotNil(t, res)
 	assert.Nil(t, err)
@@ -81,6 +81,47 @@ func Test12(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 12, res.dieSides)
 	assert.Equal(t, 1, len(res.results))
+}
+
+func TestModifiersOK(t *testing.T) {
+	testCases := []struct {
+		dice           string
+		comparisonType string
+		compareValue   int
+	}{
+		{dice: "20+100", comparisonType: "greather", compareValue: 100},
+		{dice: "2D6+10", comparisonType: "greather", compareValue: 11},
+		{dice: "1+0", comparisonType: "equal", compareValue: 1},
+		{dice: "d6-100", comparisonType: "lesser", compareValue: -93},
+	}
+	for _, testCase := range testCases {
+		res, err := rollDice(testCase.dice)
+		message := "Testing case " + testCase.dice
+		assert.Nil(t, err, message)
+		assert.NotNil(t, res, message)
+
+		assert.GreaterOrEqual(t, len(res.results), 1, message)
+
+		for _, result := range res.results {
+			switch testCase.comparisonType {
+			case "equal":
+				assert.Equal(t, testCase.compareValue, result, message)
+			case "lesser":
+				assert.Less(t, result, testCase.compareValue, message)
+			case "greater":
+				assert.Greater(t, testCase.compareValue, result, message)
+			}
+		}
+	}
+}
+
+func TestModifiersKO(t *testing.T) {
+	badSyntaxModifiers := [...]string{"+1", "+HAHAH", "+-5"}
+	for _, badInput := range badSyntaxModifiers {
+		res, err := rollDice(badInput)
+		assert.NotNil(t, err, "Testing "+badInput)
+		assert.Nil(t, res, "Testing "+badInput)
+	}
 }
 
 func TestD(t *testing.T) {

@@ -4,10 +4,12 @@
 This Mattermost plugin adds a `/roll` slash command to roll all kinds of virtual dice.
 
 ## Examples
-- `/roll <integer>` will roll a die with the corresponding number of sides. Example: `/roll 20` rolls a 20-sided die.
-- `/roll <N:integer>d<S:integer>` will roll N S-sided dice. Example: `/roll 5D6`
-- `/roll <roll1> <roll2> <roll3> [...]` will roll all the requested dice. Example: `/roll 5 d8 13D20` will roll one 5-sided die, 1 8-sided die and 13 20-sided dice.
-- `/roll <roll1> <roll2> [...] sum` will roll all the requested dice and compute the sum of all the roll results. Example: `/roll 2d6 8` will roll two 6-sided die, 1 8-sided die and display the sum of all the results.
+- Use `/roll 20` to roll a 20-sided die.
+- Use `/roll 5D6` to roll five 6-sided dice.
+- Use `/roll 20+3` to roll fa 20-sided die and add 3 to the result.
+- Use `/roll 5D6+3` to roll five 6-sided dice and add 3 to the result of each dice.
+- Combine many different dice to roll at once: `/roll 5 d8 13D20` to roll one 5-sided die, one 8-sided die and thirteen 20-sided dice. The results of each type of dice are displayed seperately.
+- Add `sum` at the end to sum results automatically: `/roll 5 d8 13D20 sum`
 - `/roll help` will show a reminder of how to use the plugin.
 
 ## Compatibility
