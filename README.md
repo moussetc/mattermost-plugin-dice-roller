@@ -1,21 +1,37 @@
 # mattermost-plugin-dice-roller [![Build status](https://api.travis-ci.com/moussetc/mattermost-plugin-dice-roller.svg?branch=master)](https://travis-ci.com/github/moussetc/mattermost-plugin-dice-roller)
 
 **Maintainer:** [@moussetc](https://github.com/moussetc)
+
 This Mattermost plugin adds a `/roll` slash command to roll all kinds of virtual dice.
 
 ## Examples
 - Use `/roll help` to show examples.
-- Use `/roll 20` to roll a 20-sided die.
-- Use `/roll 5d6` to roll five 6-sided dice.
-- Use `/roll 20+3` to roll fa 20-sided die and add 3 to the result.
-- Use `/roll 5D6+3` to roll five 6-sided dice and add 3 to the result of each dice.
-- Use `/roll 5D6 +3` (note the space) to roll five 6-sided dice and add 3 to the total.
-- Combine different dice to roll at the same time: `/roll 5 d8 13D20` to roll one 5-sided die, one 8-sided die and thirteen 20-sided dice. The results of each type of dice are displayed seperately.
-- **[Up to version 3.0.x]** Add `sum` at the end to sum results automatically: `/roll 5 d8 13D20 sum`. In later versions, the sum is always displayed.
+- Use `/roll 20`, `/roll d20` or  `/roll 1D20` to roll a 20-sided die:
+
+![demo](doc/demo_20.png)
+
+- Use `/roll 5d6` to roll five 6-sided dice:
+
+![demo](doc/demo_5d6.png)
+
+- Use `/roll 5D6+3` to roll five 6-sided dice and add 3 to the result of each dice:
+
+![demo](doc/demo_5d6_dice_modifier.png)
+
+- Use `/roll 5D6 +3` (note the space) to roll five 6-sided dice and add 3 to the total:
+
+![demo](doc/demo_5d6_sum_modifier.png)
+
+- Combine different dice to roll at the same time: `/roll 5 d8 13D20` to roll one 5-sided die, one 8-sided die and thirteen 20-sided dice:
+
+![demo](doc/demo_many_dice.png)
+
+- **[Up to version 3.0.x]** Add `sum` at the end to sum results automatically: `/roll 5 d8 13D20 sum`. In later versions, the sum is always displayed without having to add `sum`.
 
 
 ## Compatibility
-Use the following table to find the correct plugin version for each Mattermost server version:
+
+Use the following table to find the correct plugin version for your Mattermost server version:
 
 | Mattermost server | Plugin release | Incompatibility |
 | --- | --- | --- |
@@ -26,6 +42,7 @@ Use the following table to find the correct plugin version for each Mattermost s
 | below | *not supported* |  plugins can't create slash commands |
 
 ## Installation and configuration
+
 1. Go to the [Releases page](https://github.com/moussetc/mattermost-plugin-dice-roller/releases) and download the `.tar.gz` package. Supported platforms are: Linux x64, Windows x64, Darwin x64, FreeBSD x64.
 2. Use the Mattermost `System Console > Plugins Management > Management` page to upload the `.tar.gz` package
 3. **Activate the plugin** in the `System Console > Plugins Management > Management` page
