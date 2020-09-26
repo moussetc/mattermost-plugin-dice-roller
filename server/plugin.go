@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	trigger      string = "roll"
-	diceFilename string = "icon.png"
+	trigger string = "roll"
 )
 
 // Plugin implements the interface expected by the Mattermost server to communicate between the server and plugin processes.
@@ -28,12 +27,11 @@ type Plugin struct {
 	// setConfiguration for usage.
 	configuration *configuration
 
-	//BotId of the created bot account for dice rolling
-	diceBotId string
+	// BotId of the created bot account for dice rolling
+	diceBotID string
 }
 
 func (p *Plugin) OnActivate() error {
-
 	rand.Seed(time.Now().UnixNano())
 
 	return p.API.RegisterCommand(&model.Command{
@@ -93,10 +91,9 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	return nil, appError("Expected trigger "+cmd+" but got "+args.Command, nil)
 }
 
-func (p *Plugin) generateDicePost(query, userId, channelId, rootId string) (*model.Post, *model.AppError) {
-
-	// Get the user to we can display the right name
-	user, userErr := p.API.GetUser(userId)
+func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*model.Post, *model.AppError) {
+	// Get the user to display their name
+	user, userErr := p.API.GetUser(userID)
 	if userErr != nil {
 		return nil, userErr
 	}
@@ -136,19 +133,11 @@ func (p *Plugin) generateDicePost(query, userId, channelId, rootId string) (*mod
 	}
 
 	return &model.Post{
-		UserId:    p.diceBotId,
-		ChannelId: channelId,
-		RootId:    rootId,
+		UserId:    p.diceBotID,
+		ChannelId: channelID,
+		RootId:    rootID,
 		Message:   text,
 	}, nil
-}
-
-type rollAPIResult struct {
-	Success bool `json:"success"`
-	Dice    []struct {
-		Value int    `json:"value"`
-		Type  string `json:"type"`
-	} `json:"dice"`
 }
 
 func appError(message string, err error) *model.AppError {

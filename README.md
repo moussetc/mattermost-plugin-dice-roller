@@ -37,21 +37,56 @@ If you need to enable & configure this plugin directly in the Mattermost configu
 - `/roll <roll1> <roll2> [...] sum` will roll all the requested dice and compute the sum of all the roll results. Example: `/roll 2d6 8` will roll two 6-sided die, 1 8-sided die and display the sum of all the results.
 - `/roll help` will show a reminder of how to use the plugin.
 
-## Development
-Build the plugin with the following command:
-```
-make
-```
-This will produce a single plugin package (with support for multiple architectures) in `dist/com.github.moussetc.mattermost.plugin.diceroller-X.X.X.tar.gz`
+# Development
 
-To automate deploying and enabling the plugin to your server, add the following lines at the beginning of the Makefile (it requires [http](https://httpie.org/) to be installed) and configure your admin login&password:
+To avoid having to manually install your plugin, build and deploy your plugin using one of the following options.
+
+### Deploying with Local Mode
+
+If your Mattermost server is running locally, you can enable [local mode](https://docs.mattermost.com/administration/mmctl-cli-tool.html#local-mode) to streamline deploying your plugin. Edit your server configuration as follows:
+
+```json
+{
+    "ServiceSettings": {
+        ...
+        "EnableLocalMode": true,
+        "LocalModeSocketLocation": "/var/tmp/mattermost_local.socket"
+    }
+}
+```
+
+and then deploy your plugin:
+```
+make deploy
+```
+
+You may also customize the Unix socket path:
+```
+export MM_LOCALSOCKETPATH=/var/tmp/alternate_local.socket
+make deploy
+```
+
+If developing a plugin with a webapp, watch for changes and deploy those automatically:
+```
+export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
+export MM_ADMIN_TOKEN=j44acwd8obn78cdcx7koid4jkr
+make watch
+```
+
+### Deploying with credentials
+
+Alternatively, you can authenticate with the server's API with credentials:
 ```
 export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
 export MM_ADMIN_USERNAME=admin
 export MM_ADMIN_PASSWORD=password
+make deploy
 ```
-and use this command:
+
+or with a [personal access token](https://docs.mattermost.com/developer/personal-access-tokens.html):
 ```
+export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
+export MM_ADMIN_TOKEN=j44acwd8obn78cdcx7koid4jkr
 make deploy
 ```
 
@@ -60,4 +95,5 @@ make deploy
 - Generate roll results as accurate image (number of dice, number of faces...)
 
 ## Credits
+- This plugin is based of the [Mattermost plugin starter template](https://github.com/mattermost/mattermost-plugin-starter-template)
 - This project uses a dice icon provided by [openclipart](https://openclipart.org/detail/94501/twentysided-dice) under the [Creative Commons Zero 1.0 Public Domain License](https://creativecommons.org/publicdomain/zero/1.0/).

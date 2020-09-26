@@ -41,9 +41,8 @@ func genericWrongInputTestPlugin(t *testing.T, badInput string) {
 	p, _ := initTestPlugin(t)
 	assert.Nil(t, p.OnActivate())
 
-	var command *model.CommandArgs
 	// Wrong dice requests
-	command = &model.CommandArgs{
+	command := &model.CommandArgs{
 		Command: badInput,
 	}
 	response, err := p.ExecuteCommand(&plugin.Context{}, command)
@@ -82,7 +81,6 @@ func TestGoodRequestHelp(t *testing.T) {
 }
 
 func genericCorrectInputTestPlugin(t *testing.T, expectedText string, inputDiceRequest string) {
-
 	p, api := initTestPlugin(t)
 	var post *model.Post
 	api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(nil, nil).Run(func(args mock.Arguments) {
@@ -103,7 +101,6 @@ func genericCorrectInputTestPlugin(t *testing.T, expectedText string, inputDiceR
 }
 
 func initTestPlugin(t *testing.T) (*Plugin, *plugintest.API) {
-
 	api := &plugintest.API{}
 	api.On("RegisterCommand", mock.Anything).Return(nil)
 	api.On("UnregisterCommand", mock.Anything, mock.Anything).Return(nil)

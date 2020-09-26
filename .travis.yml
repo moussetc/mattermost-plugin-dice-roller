@@ -1,17 +1,18 @@
+os: linux
 dist: trusty
-sudo: false
 language: go
 go:
-- "1.12.x"
+- "1.14.x"
 after_success:
 - bash <(curl -s https://codecov.io/bash)
 env:
-- GO111MODULE=on
+- GO111MODULE="on"
 install:
+- curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.24.0
 - make
 deploy:
   provider: releases
-  api_key:
+  token:
     secure: pLAVpQYpi3MmKtnMMZWDIX/ioCqaPi1SqGt1FNfQg+MoZB4kZOgtEUnktJuI5VxhiP722qpzj7mbRTm+h9d1gdOa3KJxTemclgu7P3z6gDOEU2mHo6H4zIGNKX6rJCPCk6KCOqsiRfU0zAnnkwiaGJkNCUV3kb9cnvaYeHUIgw3lUsWGDLSp9G457J4YWmNwjc6EbllbhVeqk0nv5zdgrSNhhdU9hjh/Q0yhN0Ua2XMqLhkNJJY9y6UQUgSiCa2V2qVEdf7kJ7fZlkSor5IIVWym/CRkciH3tXxvCCnf0LLULD5DYCk38qjJF+oGaWY8jdKfN6vqLpqNflqy/vZoLgZgy6PYZASOrnS7Dfnqw1vqu3TCZA15iz2rXC1QWjlNMaYLgzqiSisiDOEyrVdDSq2j+ZozU7USBzRmyeK9zzyquS8OueiORQG5wY0jPH7i+srgZl8oc0x+HfZpD13f/J0Y/38YvFQlJTra5haoNTfN82gOvTOhXepZ51NX77UyFKEPYjH0cw/KGDcbit7VRLu7KRpSI76rmok+W39aNdoVQonGQsopHSTwKQNZn/UOlnkKW5eyQsS70OAFeOy7CJLBCG52PhLgxx/NIt2csV4ILDS23FkNS6T5moLK1i6JmEWZ0fUT4xijJfCNqt8gVSUiGVuTGQwCwISyYsSdZO8=
   file: dist/*
   file_glob: true

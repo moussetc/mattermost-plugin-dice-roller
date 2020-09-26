@@ -83,7 +83,7 @@ func (p *Plugin) OnConfigurationChange() error {
 
 	p.setConfiguration(configuration)
 
-	diceBotId, ensureBotError := p.Helpers.EnsureBot(&model.Bot{
+	diceBotID, ensureBotError := p.Helpers.EnsureBot(&model.Bot{
 		Username:    "dicerollerbot",
 		DisplayName: "Dice Roller",
 		Description: "A bot account created by " + manifest.Name + " plugin.",
@@ -92,7 +92,7 @@ func (p *Plugin) OnConfigurationChange() error {
 		return errors.Wrap(ensureBotError, "failed to ensure dice bot.")
 	}
 
-	p.diceBotId = diceBotId
+	p.diceBotID = diceBotID
 
 	return nil
 }
