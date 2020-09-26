@@ -1,19 +1,37 @@
-# mattermost-plugin-dice-roller
+# mattermost-plugin-dice-roller [![Build status](https://api.travis-ci.com/moussetc/mattermost-plugin-dice-roller.svg?branch=master)](https://travis-ci.com/github/moussetc/mattermost-plugin-dice-roller)
+
+**Maintainer:** [@moussetc](https://github.com/moussetc)
 This Mattermost plugin adds a `/roll` slash command to roll all kinds of virtual dice.
 
-## Requirements
-- for Mattermost 5.12 or higher: use the latest v3.x.x release
-- for Mattermost 5.2 to 5.11: use the latest v2.x.x release
-- for Mattermost 4.6 to 5.1: use the latest v1.x.x release
-- for Mattermost below: unsupported versions (plugins can't create slash commands)
+## Examples
+- `/roll <integer>` will roll a die with the corresponding number of sides. Example: `/roll 20` rolls a 20-sided die.
+- `/roll <N:integer>d<S:integer>` will roll N S-sided dice. Example: `/roll 5D6`
+- `/roll <roll1> <roll2> <roll3> [...]` will roll all the requested dice. Example: `/roll 5 d8 13D20` will roll one 5-sided die, 1 8-sided die and 13 20-sided dice.
+- `/roll <roll1> <roll2> [...] sum` will roll all the requested dice and compute the sum of all the roll results. Example: `/roll 2d6 8` will roll two 6-sided die, 1 8-sided die and display the sum of all the results.
+- `/roll help` will show a reminder of how to use the plugin.
+
+## Compatibility
+Use the following table to find the correct plugin version for each Mattermost server version:
+
+| Mattermost server | Plugin release | Incompatibility |
+| --- | --- | --- |
+| 5.20 and higher | v3.1.x+ | breaking plugin manifest change |
+| 5.12 to 5.19 | v3.0.x | breaking plugin API change |
+| 5.2 to 5.11 | v2.x.x | |
+| 4.6 to 5.1 | v1.x.x | |
+| below | *not supported* |  plugins can't create slash commands |
 
 ## Installation and configuration
-1. Go to the [Releases page](https://github.com/moussetc/mattermost-plugin-dice-roller/releases) and download the package for your OS and architecture.
+1. Go to the [Releases page](https://github.com/moussetc/mattermost-plugin-dice-roller/releases) and download the `.tar.gz` package. Supported platforms are: Linux x64, Windows x64, Darwin x64, FreeBSD x64.
 2. Use the Mattermost `System Console > Plugins Management > Management` page to upload the `.tar.gz` package
 3. **Activate the plugin** in the `System Console > Plugins Management > Management` page
 
-## Manual configuration
-If you need to enable & configure this plugin directly in the Mattermost configuration file `config.json`, for example if you are doing a [High Availability setup](https://docs.mattermost.com/deployment/cluster.html), you can use the following lines (remember to set the API key!):
+### Configuration Notes in HA
+
+If you are running Mattermost v5.11 or earlier in [High Availability mode](https://docs.mattermost.com/deployment/cluster.html), please review the following:
+
+1. To install the plugin, [use these documented steps](https://docs.mattermost.com/administration/plugins.html#plugin-uploads-in-high-availability-mode)
+2. Then, modify the config.json [using the standard doc steps](https://docs.mattermost.com/deployment/cluster.html#updating-configuration-changes-while-operating-continuously) to the following:
 ```json
  "PluginSettings": {
         // [...]
@@ -29,13 +47,6 @@ If you need to enable & configure this plugin directly in the Mattermost configu
         }
     }
 ```
-
-## Usage
-- `/roll <integer>` will roll a die with the corresponding number of sides. Example: `/roll 20` rolls a 20-sided die.
-- `/roll <N:integer>d<S:integer>` will roll N S-sided dice. Example: `/roll 5D6`
-- `/roll <roll1> <roll2> <roll3> [...]` will roll all the requested dice. Example: `/roll 5 d8 13D20` will roll one 5-sided die, 1 8-sided die and 13 20-sided dice.
-- `/roll <roll1> <roll2> [...] sum` will roll all the requested dice and compute the sum of all the roll results. Example: `/roll 2d6 8` will roll two 6-sided die, 1 8-sided die and display the sum of all the results.
-- `/roll help` will show a reminder of how to use the plugin.
 
 # Development
 
@@ -97,3 +108,8 @@ make deploy
 ## Credits
 - This plugin is based of the [Mattermost plugin starter template](https://github.com/mattermost/mattermost-plugin-starter-template)
 - This project uses a dice icon provided by [openclipart](https://openclipart.org/detail/94501/twentysided-dice) under the [Creative Commons Zero 1.0 Public Domain License](https://creativecommons.org/publicdomain/zero/1.0/).
+
+
+## How do I share feedback on this plugin?
+
+Feel free to create a GitHub issue or to contact me at `@cmousset` on the [community Mattermost instance](https://pre-release.mattermost.com/) to discuss.
