@@ -7,9 +7,16 @@ import (
 	"strconv"
 )
 
+const (
+	rollTypeNumeric     = "numeric"
+	rollTypeSumModifier = "sumModifier"
+)
+
 type diceRolls struct {
-	dieSides int
-	results  []int
+	rollType    string
+	dieSides    int
+	results     []int
+	sumModifier int
 }
 
 const (
@@ -17,23 +24,42 @@ const (
 )
 
 func rollDice(code string) (*diceRolls, error) {
+	sumModifierResult, err := readSumModifier(code)
+	if err != nil {
+		return nil, err
+	}
+	if sumModifierResult != nil {
+		return sumModifierResult, nil
+	}
+	numericModifierResult, err := rollNumericDice(code)
+	if err != nil {
+		return nil, err
+	}
+	if numericModifierResult != nil {
+		return numericModifierResult, nil
+	}
+
+	return nil, fmt.Errorf("could not parse '%s'", code)
+}
+
+func rollNumericDice(code string) (*diceRolls, error) {
 	// <optional number of dice><optional 'd' or 'D'><number of sides><optional modifier>
-	re := regexp.MustCompile(`^((?P<number>([1-9]\d*))?[dD])?(?P<sides>[1-9]\d*)(?P<modifier>[+-]\d+)?$`)
+	re := regexp.MustCompile(`^((?P<number>([1-9]\d*))?[dD])?(?P<sides>[1-9]\d*)(?P<diceModifier>[+-]\d+)?$`)
 	matchIndexes := re.FindStringSubmatch(code)
 	if matchIndexes == nil {
 		return nil, fmt.Errorf("'%s' is not a valid die code", code)
 	}
 	var numberStr string
 	var sidesStr string
-	var modifierStr string
+	var diceModifierStr string
 	for i, name := range re.SubexpNames() {
 		switch name {
 		case "number":
 			numberStr = matchIndexes[i]
 		case "sides":
 			sidesStr = matchIndexes[i]
-		case "modifier":
-			modifierStr = matchIndexes[i]
+		case "diceModifier":
+			diceModifierStr = matchIndexes[i]
 		}
 	}
 
@@ -56,10 +82,10 @@ func rollDice(code string) (*diceRolls, error) {
 	}
 
 	modifier := 0
-	if modifierStr != "" {
-		modifier, err = strconv.Atoi(modifierStr)
+	if diceModifierStr != "" {
+		modifier, err = strconv.Atoi(diceModifierStr)
 		if err != nil {
-			return nil, fmt.Errorf("could not parse a modifier from '%s'", modifierStr)
+			return nil, fmt.Errorf("could not parse a modifier from '%s'", diceModifierStr)
 		}
 	}
 
@@ -68,7 +94,28 @@ func rollDice(code string) (*diceRolls, error) {
 		rolls[i] = rollDie(sides) + modifier
 	}
 
-	return &diceRolls{sides, rolls}, nil
+	return &diceRolls{rollType: rollTypeNumeric, dieSides: sides, results: rolls}, nil
+}
+
+func readSumModifier(code string) (*diceRolls, error) {
+	// <optional number of dice><optional 'd' or 'D'><number of sides><optional modifier>
+	re := regexp.MustCompile(`^(?P<sumModifier>[+-]\d+)$`)
+	matchIndexes := re.FindStringSubmatch(code)
+	if matchIndexes == nil {
+		return nil, nil
+	}
+	var sumModifierStr string
+	for i, name := range re.SubexpNames() {
+		if name == "sumModifier" {
+			sumModifierStr = matchIndexes[i]
+		}
+	}
+
+	sumModifier, err := strconv.Atoi(sumModifierStr)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse a modifier from '%s'", sumModifierStr)
+	}
+	return &diceRolls{rollType: rollTypeSumModifier, sumModifier: sumModifier}, nil
 }
 
 func rollDie(sides int) int {

@@ -13,58 +13,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 )
 
-func TestBadTrigger(t *testing.T) {
-	genericWrongInputTestPlugin(t, "/lolzies d20")
-}
-
-func TestEmptyRequest(t *testing.T) {
-	genericWrongInputTestPlugin(t, "/roll ")
-}
-
-func TestBadRequestD0(t *testing.T) {
-	genericWrongInputTestPlugin(t, "/roll d0")
-}
-
-func TestBadRequestWeirdString(t *testing.T) {
-	genericWrongInputTestPlugin(t, "/roll hahaha")
-}
-
-func TestBadRequestDiceWithoutNumber(t *testing.T) {
-	genericWrongInputTestPlugin(t, "/roll 6d")
-}
-
-func TestBadRequest0D5(t *testing.T) {
-	genericWrongInputTestPlugin(t, "/roll 0d5")
-}
-
-func genericWrongInputTestPlugin(t *testing.T, badInput string) {
-	p, _ := initTestPlugin(t)
-	assert.Nil(t, p.OnActivate())
-
-	// Wrong dice requests
-	command := &model.CommandArgs{
-		Command: badInput,
-	}
-	response, err := p.ExecuteCommand(&plugin.Context{}, command)
-	assert.NotNil(t, err)
-	assert.Nil(t, response)
-}
-
-func TestGoodRequestRoll1(t *testing.T) {
-	genericCorrectInputTestPlugin(t, "**User** *rolls 1:* **1 **", "1")
-}
-
-func TestGoodRequestRoll5D1(t *testing.T) {
-	genericCorrectInputTestPlugin(
-		t,
-		"**User** *rolls 5d1:* **1 1 1 1 1 **",
-		"5d1")
-}
-
-func TestGoodRequestRoll3D1Sum(t *testing.T) {
-	genericCorrectInputTestPlugin(t, "**User** *rolls 3d1:* **1 1 1 **\n**Total = 3**", "3d1 sum")
-}
-
 func TestGoodRequestHelp(t *testing.T) {
 	p, _ := initTestPlugin(t)
 	assert.Nil(t, p.OnActivate())
@@ -80,7 +28,31 @@ func TestGoodRequestHelp(t *testing.T) {
 	assert.Nil(t, response.Attachments)
 }
 
-func genericCorrectInputTestPlugin(t *testing.T, expectedText string, inputDiceRequest string) {
+func TestBadInputs(t *testing.T) {
+	p, _ := initTestPlugin(t)
+	assert.Nil(t, p.OnActivate())
+
+	testCases := []string{
+		"/lolzies d20",
+		"/roll ",
+		"/roll d0",
+		"/roll hahaha",
+		"/roll 6d",
+		"/roll 0d5",
+	}
+	for _, testCase := range testCases {
+		// Wrong dice requests
+		command := &model.CommandArgs{
+			Command: testCase,
+		}
+		response, err := p.ExecuteCommand(&plugin.Context{}, command)
+
+		assert.NotNil(t, err)
+		assert.Nil(t, response)
+	}
+}
+
+func TestGoodInputs(t *testing.T) {
 	p, api := initTestPlugin(t)
 	var post *model.Post
 	api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(nil, nil).Run(func(args mock.Arguments) {
@@ -88,16 +60,30 @@ func genericCorrectInputTestPlugin(t *testing.T, expectedText string, inputDiceR
 	})
 	assert.Nil(t, p.OnActivate())
 
-	command := &model.CommandArgs{
-		Command: "/roll " + inputDiceRequest,
-		UserId:  "userid",
+	testCases := []struct {
+		inputDiceRequest string
+		expectedText     string
+	}{
+		{inputDiceRequest: "3d1 sum", expectedText: "**User** rolls:\n- 3d1: **1 1 1 **\n**Total = 3**"},
+		{inputDiceRequest: "5d1", expectedText: "**User** rolls:\n- 5d1: **1 1 1 1 1 **"},
+		{inputDiceRequest: "1", expectedText: "**User** rolls:\n- 1: **1 **"},
+		{inputDiceRequest: "+42", expectedText: "**User** rolls:\n- **+42 **\n**Total = 42**"},
+		{inputDiceRequest: "4d1+3", expectedText: "**User** rolls:\n- 4d1+3: **4 4 4 4 **"},
+		{inputDiceRequest: "4d1 +3", expectedText: "**User** rolls:\n- 4d1: **1 1 1 1 **\n- **+3 **\n**Total = 7**"},
 	}
-	response, err := p.ExecuteCommand(&plugin.Context{}, command)
-	assert.Nil(t, err)
-	assert.NotNil(t, response)
-	assert.NotNil(t, post)
-	assert.NotNil(t, post.Message)
-	assert.Equal(t, expectedText, strings.TrimSpace(post.Message))
+	for _, testCase := range testCases {
+		command := &model.CommandArgs{
+			Command: "/roll " + testCase.inputDiceRequest,
+			UserId:  "userid",
+		}
+		response, err := p.ExecuteCommand(&plugin.Context{}, command)
+		testLabel := "Testing " + testCase.inputDiceRequest
+		assert.Nil(t, err, testLabel)
+		assert.NotNil(t, response, testLabel)
+		assert.NotNil(t, post, testLabel)
+		assert.NotNil(t, post.Message, testLabel)
+		assert.Equal(t, testCase.expectedText, strings.TrimSpace(post.Message), testLabel)
+	}
 }
 
 func initTestPlugin(t *testing.T) (*Plugin, *plugintest.API) {

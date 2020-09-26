@@ -55,7 +55,8 @@ func (p *Plugin) GetHelpMessage() *model.CommandResponse {
 			"- `/roll 20` to roll a 20-sided die. You can use any number.\n" +
 			"- `/roll 5D6` to roll five 6-sided dice in one go.\n" +
 			"- `/roll 5D6+3` to roll five 6-sided dice and add 3 the result of each die.\n" +
-			"- `/roll 5 d8 13D20` to roll different kinds of dice all at once.\n" +
+			"- `/roll 5D6 +3` (with a space) to roll five 6-sided dice and add 3 the total.\n" +
+			"- `/roll 5 d8 13D20` to roll different dice at the same time.\n" +
 			"- Add `sum` at the end to get the sum of all the dice results as well.\n" +
 			"- `/roll help` will show this help text.\n\n" +
 			" ⚅ ⚂ Let's get rolling! ⚁ ⚄",
@@ -104,7 +105,7 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*mod
 	}
 
 	sumRequest := false
-	text := ""
+	text := fmt.Sprintf("**%s** rolls:\n", displayName)
 	sum := 0
 
 	rollRequests := strings.Fields(query)
@@ -117,15 +118,23 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*mod
 				return nil, appError(fmt.Sprintf("%s See `/roll help` for examples.", err.Error()), err)
 			}
 			formattedResults := ""
-			for _, roll := range result.results {
-				formattedResults += fmt.Sprintf("%d ", roll)
-				sum += roll
+			if result.rollType == rollTypeNumeric {
+				for _, roll := range result.results {
+					formattedResults += fmt.Sprintf("%d ", roll)
+					sum += roll
+				}
+				text += fmt.Sprintf("- %s: **%s**\n", rollRequest, formattedResults)
+			} else {
+				formattedResults += fmt.Sprintf("%+d ", result.sumModifier)
+				text += fmt.Sprintf("- **%s**\n", formattedResults)
+				sum += result.sumModifier
+				// If there's a modifier, there's probably the need for a sum
+				sumRequest = true
 			}
-			text += fmt.Sprintf("**%s** *rolls %s:* **%s**\n", displayName, rollRequest, formattedResults)
 		}
 	}
 
-	if len(rollRequests) == 0 || sumRequest && len(rollRequests) == 1 {
+	if len(rollRequests) == 0 || query == "sum" {
 		return nil, appError("No roll request arguments found (such as '20', '4d6', etc.).", nil)
 	}
 
