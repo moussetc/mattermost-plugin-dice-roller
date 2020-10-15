@@ -86,17 +86,17 @@ func Test12(t *testing.T) {
 func TestModifiersOK(t *testing.T) {
 	testCases := []struct {
 		dice           string
-		resultType     string
+		resultType     RollType
 		comparisonType string
 		compareValue   int
 	}{
-		{dice: "20+100", resultType: rollTypeNumeric, comparisonType: "greather", compareValue: 100},
-		{dice: "2D6+10", resultType: rollTypeNumeric, comparisonType: "greather", compareValue: 11},
-		{dice: "1+0", resultType: rollTypeNumeric, comparisonType: "equal", compareValue: 1},
-		{dice: "d6-100", resultType: rollTypeNumeric, comparisonType: "lesser", compareValue: -93},
-		{dice: "+10", resultType: rollTypeSumModifier, comparisonType: "equals", compareValue: 10},
-		{dice: "-42", resultType: rollTypeSumModifier, comparisonType: "equals", compareValue: -42},
-		{dice: "+42", resultType: rollTypeSumModifier, comparisonType: "equals", compareValue: 42},
+		{dice: "20+100", resultType: numeric, comparisonType: "greather", compareValue: 100},
+		{dice: "2D6+10", resultType: numeric, comparisonType: "greather", compareValue: 11},
+		{dice: "1+0", resultType: numeric, comparisonType: "equal", compareValue: 1},
+		{dice: "d6-100", resultType: numeric, comparisonType: "lesser", compareValue: -93},
+		{dice: "+10", resultType: sumModifier, comparisonType: "equals", compareValue: 10},
+		{dice: "-42", resultType: sumModifier, comparisonType: "equals", compareValue: -42},
+		{dice: "+42", resultType: sumModifier, comparisonType: "equals", compareValue: 42},
 	}
 	for _, testCase := range testCases {
 		res, err := rollDice(testCase.dice)
@@ -104,9 +104,9 @@ func TestModifiersOK(t *testing.T) {
 		assert.Nil(t, err, message)
 		assert.NotNil(t, res, message)
 
-		if testCase.resultType == rollTypeNumeric {
+		if testCase.resultType == numeric {
 			assert.GreaterOrEqual(t, len(res.results), 1, message)
-			assert.Equal(t, rollTypeNumeric, res.rollType)
+			assert.Equal(t, numeric, res.rollType)
 			for _, result := range res.results {
 				switch testCase.comparisonType {
 				case "equal":
@@ -118,7 +118,7 @@ func TestModifiersOK(t *testing.T) {
 				}
 			}
 		} else {
-			assert.Equal(t, rollTypeSumModifier, res.rollType)
+			assert.Equal(t, sumModifier, res.rollType)
 			assert.Equal(t, testCase.compareValue, res.sumModifier, message)
 		}
 	}

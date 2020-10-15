@@ -115,24 +115,25 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*mod
 	for i, rollRequest := range rollRequests {
 		// Ignore the 'sum' keyword, remnant of a previous version
 		// kept for the compatibility
-		if rollRequest != "sum" {
-			result, err := rollDice(rollRequest)
-			if err != nil {
-				return nil, appError(fmt.Sprintf("%s See `/roll help` for examples.", err.Error()), err)
+		if rollRequest == "sum" {
+			continue
+		}
+		result, err := rollDice(rollRequest)
+		if err != nil {
+			return nil, appError(fmt.Sprintf("%s See `/roll help` for examples.", err.Error()), err)
+		}
+		if result.rollType == numeric {
+			numericDiceCount++
+			rollDetails := fmt.Sprintf("%s: ", rollRequest)
+			singleResultCount += len(result.results)
+			for _, roll := range result.results {
+				rollDetails += fmt.Sprintf("%d ", roll)
+				sum += roll
 			}
-			if result.rollType == rollTypeNumeric {
-				numericDiceCount++
-				rollDetails := fmt.Sprintf("%s: ", rollRequest)
-				singleResultCount += len(result.results)
-				for _, roll := range result.results {
-					rollDetails += fmt.Sprintf("%d ", roll)
-					sum += roll
-				}
-				formattedRollDetails[i] = strings.TrimSpace(rollDetails)
-			} else {
-				formattedRollDetails[i] = fmt.Sprintf("%+d", result.sumModifier)
-				sum += result.sumModifier
-			}
+			formattedRollDetails[i] = strings.TrimSpace(rollDetails)
+		} else {
+			formattedRollDetails[i] = fmt.Sprintf("%+d", result.sumModifier)
+			sum += result.sumModifier
 		}
 	}
 

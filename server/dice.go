@@ -7,13 +7,16 @@ import (
 	"strconv"
 )
 
+// RollType list the kinds of 'rolls' supported by the plugin
+type RollType string
+
 const (
-	rollTypeNumeric     = "numeric"
-	rollTypeSumModifier = "sumModifier"
+	numeric     RollType = "numeric"
+	sumModifier RollType = "sumModifier"
 )
 
 type diceRolls struct {
-	rollType    string
+	rollType    RollType
 	dieSides    int
 	results     []int
 	sumModifier int
@@ -94,7 +97,7 @@ func rollNumericDice(code string) (*diceRolls, error) {
 		rolls[i] = rollDie(sides) + modifier
 	}
 
-	return &diceRolls{rollType: rollTypeNumeric, dieSides: sides, results: rolls}, nil
+	return &diceRolls{rollType: numeric, dieSides: sides, results: rolls}, nil
 }
 
 func readSumModifier(code string) (*diceRolls, error) {
@@ -104,18 +107,18 @@ func readSumModifier(code string) (*diceRolls, error) {
 	if matchIndexes == nil {
 		return nil, nil
 	}
-	var sumModifierStr string
+	var modifierStr string
 	for i, name := range re.SubexpNames() {
 		if name == "sumModifier" {
-			sumModifierStr = matchIndexes[i]
+			modifierStr = matchIndexes[i]
 		}
 	}
 
-	sumModifier, err := strconv.Atoi(sumModifierStr)
+	modifier, err := strconv.Atoi(modifierStr)
 	if err != nil {
-		return nil, fmt.Errorf("could not parse a modifier from '%s'", sumModifierStr)
+		return nil, fmt.Errorf("could not parse a modifier from '%s'", modifierStr)
 	}
-	return &diceRolls{rollType: rollTypeSumModifier, sumModifier: sumModifier}, nil
+	return &diceRolls{rollType: sumModifier, sumModifier: modifier}, nil
 }
 
 func rollDie(sides int) int {
