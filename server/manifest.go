@@ -17,9 +17,9 @@ const manifestStr = `
   "description": "Add a command for rolling dice ⚄",
   "homepage_url": "https://github.com/moussetc/mattermost-plugin-dice-roller/",
   "support_url": "https://github.com/moussetc/mattermost-plugin-dice-roller/issues",
-  "release_notes_url": "https://github.com/moussetc/mattermost-plugin-dice-roller/releases/tag/v3.1.0",
+  "release_notes_url": "https://github.com/moussetc/mattermost-plugin-dice-roller/releases/tag/v3.1.1",
   "icon_path": "assets/icon.svg",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "min_server_version": "5.20.0",
   "server": {
     "executables": {
