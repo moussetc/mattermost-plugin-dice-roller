@@ -6,7 +6,7 @@ linters-settings:
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: github.com/mattermost/mattermost-plugin-starter-template
+    local-prefixes: github.com/moussetc/mattermost-plugin-dice-roller
   golint:
     min-confidence: 0
   govet:

@@ -1,4 +1,4 @@
-module github.com/mattermost/mattermost-plugin-starter-template
+module github.com/moussetc/mattermost-plugin-dice-roller
 
 go 1.14
 
