@@ -122,5 +122,5 @@ func readSumModifier(code string) (*diceRolls, error) {
 }
 
 func rollDie(sides int) int {
-	return 1 + rand.Intn(sides)
+	return 1 + rand.Intn(sides) //nolint:gosec
 }
