@@ -31,7 +31,7 @@ const manifestStr = `
   },
   "settings_schema": {
     "header": "",
-    "footer": "* To report an issue, make a suggestion or a contribution, [check the GitHub repository]i(https://github.com/moussetc/mattermost-plugin-dice-roller/)",
+    "footer": "* To report an issue, make a suggestion or a contribution, [check the GitHub repository](https://github.com/moussetc/mattermost-plugin-dice-roller/)",
     "settings": []
   }
 }
