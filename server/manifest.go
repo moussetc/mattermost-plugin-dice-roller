@@ -27,7 +27,7 @@ const manifestStr = `
       "darwin-amd64": "server/dist/plugin-darwin-amd64",
       "windows-amd64": "server/dist/plugin-windows-amd64.exe"
     },
-    "executable": "server/dist/plugin-freebsd-amd64"
+    "executable": "server/dist/plugin-linux-arm64"
   },
   "settings_schema": {
     "header": "",
