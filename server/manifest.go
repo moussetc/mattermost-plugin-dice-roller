@@ -27,11 +27,11 @@ const manifestStr = `
       "darwin-amd64": "server/dist/plugin-darwin-amd64",
       "windows-amd64": "server/dist/plugin-windows-amd64.exe"
     },
-    "executable": "server/dist/plugin-freebsd-amd64"
+    "executable": "server/dist/plugin-linux-arm64"
   },
   "settings_schema": {
     "header": "",
-    "footer": "* To report an issue, make a suggestion or a contribution, [check the GitHub repository]i(https://github.com/moussetc/mattermost-plugin-dice-roller/)",
+    "footer": "* To report an issue, make a suggestion or a contribution, [check the GitHub repository](https://github.com/moussetc/mattermost-plugin-dice-roller/)",
     "settings": []
   }
 }
