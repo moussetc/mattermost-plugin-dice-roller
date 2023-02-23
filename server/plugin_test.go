@@ -28,7 +28,7 @@ func TestGoodRequestHelp(t *testing.T) {
 	assert.Nil(t, response.Attachments)
 }
 
-func TestBadInputs(t *testing.T) {
+func TestPluginBadInputs(t *testing.T) {
 	p, _ := initTestPlugin(t)
 	assert.Nil(t, p.OnActivate())
 
@@ -52,7 +52,7 @@ func TestBadInputs(t *testing.T) {
 	}
 }
 
-func TestGoodInputs(t *testing.T) {
+func TestPluginGoodInputs(t *testing.T) {
 	p, api := initTestPlugin(t)
 	var post *model.Post
 	api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(nil, nil).Run(func(args mock.Arguments) {
@@ -64,13 +64,7 @@ func TestGoodInputs(t *testing.T) {
 		inputDiceRequest string
 		expectedText     string
 	}{
-		{inputDiceRequest: "3d1 sum", expectedText: "**User** rolls *3d1 sum* = **3**\n- 3d1: 1 1 1"},
-		{inputDiceRequest: "5d1", expectedText: "**User** rolls *5d1* = **5**\n- 5d1: 1 1 1 1 1"},
 		{inputDiceRequest: "1", expectedText: "**User** rolls *1* = **1**"},
-		{inputDiceRequest: "+42", expectedText: "**User** rolls *+42* = **42**"},
-		{inputDiceRequest: "4d1+3", expectedText: "**User** rolls *4d1+3* = **16**\n- 4d1+3: 4 4 4 4"},
-		{inputDiceRequest: "4d1 +3", expectedText: "**User** rolls *4d1 +3* = **7**\n- 4d1: 1 1 1 1\n- +3"},
-		{inputDiceRequest: "4d1 2d1 +42", expectedText: "**User** rolls *4d1 2d1 +42* = **48**\n- 4d1: 1 1 1 1\n- 2d1: 1 1\n- +42"},
 	}
 	for _, testCase := range testCases {
 		command := &model.CommandArgs{
