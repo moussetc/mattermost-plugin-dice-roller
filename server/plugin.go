@@ -52,7 +52,7 @@ func (p *Plugin) GetHelpMessage() *model.CommandResponse {
 	return &model.CommandResponse{
 		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		Text: "Here are some examples:\n" +
-			"- `/roll 10` to get a value with no excitement.\n" +
+			"- `/roll (5+3-2)*7/3` will use `()+-*/` with their usual meanings, except `/` rounds down.\n" +
 			"- `/roll help` will show this help text.\n\n" +
 			" ⚅ ⚂ Let's get rolling! ⚁ ⚄",
 		Props: props,
@@ -105,9 +105,9 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*mod
 	}
 
 	parseResult.roll()
-	renderResult := parseResult.render()
+	renderResult := parseResult.render("")
 
-	text := fmt.Sprintf("**%s** rolls *%s* = %s", displayName, query, renderResult)
+	text := fmt.Sprintf("**%s** rolls %s", displayName, renderResult)
 
 	return &model.Post{
 		UserId:    p.diceBotID,

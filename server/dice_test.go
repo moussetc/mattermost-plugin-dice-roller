@@ -13,6 +13,14 @@ func TestParserGoodInputs(t *testing.T) {
 	}{
 		{query: "1", expected: 1},
 		{query: "5", expected: 5},
+		{query: "5+3", expected: 8},
+		{query: "(5+3)", expected: 8},
+		{query: "(5-3)", expected: 2},
+		{query: "(10-3)/2", expected: 3},
+		{query: "(10-3)*2", expected: 14},
+		{query: "(10-3)*2", expected: 14},
+		{query: "10-3*2", expected: 4},
+		{query: "10-(3*2)", expected: 4},
 	}
 	for _, testCase := range testCases {
 		parseResult, err := parse(testCase.query)
@@ -27,6 +35,10 @@ func TestParserBadInputs(t *testing.T) {
 	testCases := []string{
 		"hello",
 		"d20",
+		"-2",
+		"5+",
+		"/7",
+		"(10-3",
 	}
 	for _, testCase := range testCases {
 		_, err := parse(testCase)
