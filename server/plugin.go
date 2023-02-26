@@ -40,7 +40,7 @@ func (p *Plugin) OnActivate() error {
 		DisplayName:      "Dice roller ⚄",
 		AutoComplete:     true,
 		AutoCompleteDesc: "Roll one or several dice. ⚁ ⚄ Try /roll help for a list of possibilities.",
-		AutoCompleteHint: "help",
+		AutoCompleteHint: "(3d20+4)/2",
 	})
 }
 
@@ -52,6 +52,7 @@ func (p *Plugin) GetHelpMessage() *model.CommandResponse {
 	return &model.CommandResponse{
 		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		Text: "Here are some examples:\n" +
+			"- `/roll 3d20` Roll 3 `d20` dice and add the results.\n" +
 			"- `/roll (5+3-2)*7/3` will use `()+-*/` with their usual meanings, except `/` rounds down.\n" +
 			"- `/roll help` will show this help text.\n\n" +
 			" ⚅ ⚂ Let's get rolling! ⚁ ⚄",
@@ -73,7 +74,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			return p.GetHelpMessage(), nil
 		}
 
-		post, generatePostError := p.generateDicePost(query, args.UserId, args.ChannelId, args.RootId)
+		post, generatePostError := p.generateDicePost(query, args.UserId, args.ChannelId, args.RootId, func(x int) int { return 1 + rand.Intn(x) })
 		if generatePostError != nil {
 			return nil, generatePostError
 		}
@@ -88,7 +89,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	return nil, appError("Expected trigger "+cmd+" but got "+args.Command, nil)
 }
 
-func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*model.Post, *model.AppError) {
+func (p *Plugin) generateDicePost(query, userID, channelID, rootID string, roller Roller) (*model.Post, *model.AppError) {
 	// Get the user to display their name
 	user, userErr := p.API.GetUser(userID)
 	if userErr != nil {
@@ -99,13 +100,13 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*mod
 		displayName = user.Username
 	}
 
-	parseResult, err := parse(query)
+	parsedNode, err := parse(query)
 	if err != nil {
 		return nil, appError(fmt.Sprintf("%s: See `/roll help` for examples.", err.Error()), err)
 	}
 
-	parseResult.roll()
-	renderResult := parseResult.render("")
+	rolledNode := parsedNode.roll(roller)
+	renderResult := rolledNode.render("")
 
 	text := fmt.Sprintf("**%s** rolls %s", displayName, renderResult)
 
