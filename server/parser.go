@@ -14,7 +14,14 @@ var (
 	prodOp = Chars("/*", 1, 1)
 
 	groupExpr = Seq("(", sum, ")").Map(func(r *Result) {
-		r.Result = r.Child[1].Result
+		c := r.Child[1]
+		r.Token = "(" + c.Token + ")"
+		n, ok := c.Result.(Node)
+		if !ok {
+			r.Result = c.Result
+			return
+		}
+		r.Result = Node{token: r.Token, child: n.child, sp: n.sp}
 	})
 
 	natural = Regex("[1-9][0-9]*").Map(func(r *Result) {
