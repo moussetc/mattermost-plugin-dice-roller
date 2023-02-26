@@ -24,6 +24,14 @@ func TestParserGoodInputs(t *testing.T) {
 		{query: "10-(3*2)", expected: 4},
 		{query: "d20", rolls: &[]int{12}, expected: 12},
 		{query: "3d20", rolls: &[]int{12, 10, 3}, expected: 25},
+		{query: "3d20k1", rolls: &[]int{12, 10, 3}, expected: 12},
+		{query: "3d20kh1", rolls: &[]int{12, 10, 3}, expected: 12},
+		{query: "3d20kl1", rolls: &[]int{12, 10, 3}, expected: 3},
+		{query: "3d20d2", rolls: &[]int{12, 10, 3}, expected: 12},
+		{query: "3d20dh2", rolls: &[]int{12, 10, 3}, expected: 3},
+		{query: "3d20dl2", rolls: &[]int{12, 10, 3}, expected: 12},
+		{query: "d20a", rolls: &[]int{12, 10}, expected: 12},
+		{query: "d20d", rolls: &[]int{12, 10}, expected: 10},
 	}
 	for _, testCase := range testCases {
 		parsedNode, err := parse(testCase.query)

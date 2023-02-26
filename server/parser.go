@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	. "github.com/vektah/goparsify"
 )
@@ -90,11 +91,69 @@ var (
 		r.Result = makeNode(r.Token, []Result{}, Dice{n: n, x: x, l: 0, h: n})
 	})
 
+	keepdropDice = Seq(natural, Regex("[Dd]"), natural, Regex("([Kk]|[Dd])([HhLl])?"), natural).Map(func(r *Result) {
+		n, err := getNatural(r.Child[0])
+		if err != nil {
+			r.Result = err
+			return
+		}
+		x, err := getNatural(r.Child[2])
+		if err != nil {
+			r.Result = err
+			return
+		}
+		k, err := getNatural(r.Child[4])
+		if err != nil {
+			r.Result = err
+			return
+		}
+
+		mode := strings.ToLower(r.Child[3].Token)
+		var l, h int
+		switch {
+		case mode == "k" || mode == "kh":
+			l, h = n-k, n
+		case mode == "d" || mode == "dl":
+			l, h = k, n
+		case mode == "kl":
+			l, h = 0, k
+		case mode == "dh":
+			l, h = 0, n-k
+		default:
+			r.Result = fmt.Errorf("invalid mode in keepdropDice: %s", mode)
+			return
+		}
+		r.Token = r.Child[0].Token + r.Child[1].Token + r.Child[2].Token + r.Child[3].Token + r.Child[4].Token
+		r.Result = makeNode(r.Token, []Result{}, Dice{n: n, x: x, l: l, h: h})
+	})
+
+	advdisDice = Seq(Regex("[Dd]"), natural, Regex("([AaDd])")).Map(func(r *Result) {
+		x, err := getNatural(r.Child[1])
+		if err != nil {
+			r.Result = err
+			return
+		}
+
+		mode := strings.ToLower(r.Child[2].Token)
+		var l, h int
+		switch {
+		case mode == "a":
+			l, h = 1, 2
+		case mode == "d":
+			l, h = 0, 1
+		default:
+			r.Result = fmt.Errorf("invalid mode in advdisDice: %s", mode)
+			return
+		}
+		r.Token = r.Child[0].Token + r.Child[1].Token + r.Child[2].Token
+		r.Result = makeNode(r.Token, []Result{}, Dice{n: 2, x: x, l: l, h: h})
+	})
+
 	y = Maybe(sum)
 )
 
 func init() {
-	value = Any(simpleDice, oneDice, natural, groupExpr)
+	value = Any(keepdropDice, advdisDice, simpleDice, oneDice, natural, groupExpr)
 }
 
 func getNatural(r Result) (int, error) {
