@@ -12,17 +12,12 @@ var (
 	value Parser
 
 	sumOp  = Chars("+-", 1, 1)
-	prodOp = Chars("/*", 1, 1)
+	prodOp = Chars("*×/", 1, 1)
 
 	groupExpr = Seq("(", sum, ")").Map(func(r *Result) {
 		c := r.Child[1]
 		r.Token = "(" + c.Token + ")"
-		n, ok := c.Result.(Node)
-		if !ok {
-			r.Result = c.Result
-			return
-		}
-		r.Result = Node{token: r.Token, child: n.child, sp: n.sp}
+		r.Result = makeNode(r.Token, []Result{c}, GroupExpr{})
 	})
 
 	natural = Regex("[1-9][0-9]*").Map(func(r *Result) {
@@ -40,7 +35,6 @@ var (
 		child := make([]Result, clen)
 		ops := make([]string, clen)
 		child[0] = r.Child[0]
-		ops[0] = "+"
 		for i, op := range r.Child[1].Child {
 			token += op.Child[0].Token + op.Child[1].Token
 			child[i+1] = op.Child[1]
@@ -56,7 +50,6 @@ var (
 		child := make([]Result, clen)
 		ops := make([]string, clen)
 		child[0] = r.Child[0]
-		ops[0] = "*"
 		for i, op := range r.Child[1].Child {
 			token += op.Child[0].Token + op.Child[1].Token
 			child[i+1] = op.Child[1]

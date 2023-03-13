@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sort"
+	"strings"
 )
 
 // Types
@@ -14,9 +15,20 @@ type Node struct {
 type NodeSpecialization interface {
 	roll(Node, Roller) NodeSpecialization
 	value(Node) int
-	render(Node, string) string
+	// The render function returns four strings:
+	// 1. The string to be used on the left side of the equals sign on the top row
+	//    of the output, if the node is the root of the tree.
+	// 2. The string to be used on the right side of the equals sign on the top
+	//    row of the output, if the node is the root of the tree.
+	// 3. The details list, i.e. all output excluding the top row, if the node is
+	//    the root of the tree. This is either the empty string or a string
+	//    starting with a newline.
+	// 4. The part of the details list contributed by this node and all its
+	//    children, if the node is not the root of the tree.
+	render(Node, string) (string, string, string, string)
 }
 type Roller func(int) int
+type GroupExpr struct{}
 type Natural struct{ n int }
 type Sum struct{ ops []string }
 type Prod struct{ ops []string }
@@ -43,9 +55,10 @@ func (n Node) roll(roller Roller) Node {
 	sp := n.sp.roll(n, roller)
 	return Node{token: n.token, child: child, sp: sp}
 }
-func (sp Natural) roll(_ Node, _ Roller) NodeSpecialization { return sp }
-func (sp Sum) roll(_ Node, _ Roller) NodeSpecialization     { return sp }
-func (sp Prod) roll(_ Node, _ Roller) NodeSpecialization    { return sp }
+func (sp GroupExpr) roll(_ Node, _ Roller) NodeSpecialization { return sp }
+func (sp Natural) roll(_ Node, _ Roller) NodeSpecialization   { return sp }
+func (sp Sum) roll(_ Node, _ Roller) NodeSpecialization       { return sp }
+func (sp Prod) roll(_ Node, _ Roller) NodeSpecialization      { return sp }
 func (sp Dice) roll(n Node, roller Roller) NodeSpecialization {
 	rolls := make([]RollResult, sp.n)
 	for i := 0; i < sp.n; i++ {
@@ -70,6 +83,9 @@ func (sp Dice) roll(n Node, roller Roller) NodeSpecialization {
 
 // Evaluate
 func (n Node) value() int { return n.sp.value(n) }
+func (_ GroupExpr) value(n Node) int {
+	return n.child[0].value()
+}
 func (sp Natural) value(_ Node) int {
 	return sp.n
 }
@@ -77,7 +93,7 @@ func (sp Sum) value(n Node) int {
 	var ret int = 0
 	for i, c := range n.child {
 		switch sp.ops[i] {
-		case "+":
+		case "+", "":
 			ret += c.value()
 		case "-":
 			ret -= c.value()
@@ -89,7 +105,7 @@ func (sp Prod) value(n Node) int {
 	var ret int = 1
 	for i, c := range n.child {
 		switch sp.ops[i] {
-		case "*":
+		case "*", "×", "":
 			ret *= c.value()
 		case "/":
 			ret /= c.value()
@@ -108,27 +124,51 @@ func (sp Dice) value(_ Node) int {
 }
 
 // Render
-func (n Node) render(ind string) string {
-	return fmt.Sprintf("*%s* = %s", n.token, n.sp.render(n, ind))
+func (n Node) render(ind string) (string, string, string, string) {
+	return n.sp.render(n, ind)
 }
-func (sp Natural) render(_ Node, _ string) string { return fmt.Sprintf("**%d**", sp.n) }
-func (sp Sum) render(n Node, ind string) string   { return renderSumProd(n, ind, sp.ops) }
-func (sp Prod) render(n Node, ind string) string  { return renderSumProd(n, ind, sp.ops) }
-func renderSumProd(n Node, ind string, ops []string) string {
+func (_ GroupExpr) render(n Node, ind string) (string, string, string, string) {
+	r1, r2, r3, r4 := n.child[0].render(ind)
+	return fmt.Sprintf("(%s)", r1), r2, r3, r4
+}
+func (sp Natural) render(_ Node, _ string) (string, string, string, string) {
+	return fmt.Sprintf("%d", sp.n), fmt.Sprintf("**%d**", sp.n), "", ""
+}
+func (sp Sum) render(n Node, ind string) (string, string, string, string) {
+	return renderSumProd(n, ind, sp.ops)
+}
+func (sp Prod) render(n Node, ind string) (string, string, string, string) {
+	return renderSumProd(n, ind, sp.ops)
+}
+func renderSumProd(n Node, ind string, ops []string) (string, string, string, string) {
 	if len(n.child) == 1 {
 		return n.child[0].sp.render(n.child[0], ind)
 	}
-	ret := fmt.Sprintf("**%d**", n.value())
-	cind := increaseIndent(ind)
-	for _, c := range n.child {
-		ret += "\n" + cind + c.render(cind)
+	r1, r4 := "", ""
+	for i, c := range n.child {
+		r1a, _, _, r4a := c.render(ind)
+		effectiveOp := ops[i]
+		if effectiveOp == "*" {
+			effectiveOp = "×"
+		}
+		r1 += effectiveOp + r1a
+		r4 += r4a
 	}
-	return ret
+	return r1, fmt.Sprintf("**%d**", n.value()), r4, r4
 }
-func increaseIndent(ind string) string {
-	if ind == "" {
-		return "- "
+func (sp Dice) render(n Node, ind string) (string, string, string, string) {
+	rollsStrs := make([]string, len(sp.rolls))
+	for i, rr := range sp.rolls {
+		if rr.use {
+			rollsStrs[i] = fmt.Sprintf("%d", rr.result)
+		} else {
+			rollsStrs[i] = fmt.Sprintf("~~%d~~", rr.result)
+		}
 	}
-	return "  " + ind
+	if sp.n == 1 && len(sp.rolls) == 1 && sp.rolls[0].use {
+		detail := fmt.Sprintf("\n%s*%s =* ***%d***", ind, n.token, n.value())
+		return n.token, fmt.Sprintf("**%d**", n.value()), "", detail
+	}
+	detail := fmt.Sprintf("\n%s*%s (%s) =* ***%d***", ind, n.token, strings.Join(rollsStrs, " "), n.value())
+	return n.token, fmt.Sprintf("**%d**", n.value()), detail, detail
 }
-func (sp Dice) render(n Node, _ string) string { return fmt.Sprintf("**%d**", sp.value(n)) }

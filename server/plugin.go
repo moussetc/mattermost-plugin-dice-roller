@@ -108,9 +108,9 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string, rolle
 	}
 
 	rolledNode := parsedNode.roll(roller)
-	renderResult := rolledNode.render("")
+	renderResult1, renderResult2, renderResult3, _ := rolledNode.render("- ")
 
-	text := fmt.Sprintf("**%s** rolls %s", displayName, renderResult)
+	text := fmt.Sprintf("**%s** rolls %s = %s%s", displayName, renderResult1, renderResult2, renderResult3)
 
 	return &model.Post{
 		UserId:    p.diceBotID,

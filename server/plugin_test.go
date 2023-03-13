@@ -64,9 +64,9 @@ func TestPluginGoodInputs(t *testing.T) {
 		inputDiceRequest string
 		expectedText     string
 	}{
-		{inputDiceRequest: "1", expectedText: "**User** rolls *1* = **1**"},
-		{inputDiceRequest: "2+3*5", expectedText: "**User** rolls *2+3*5* = **17**\n- *2* = **2**\n- *3*5* = **15**\n  - *3* = **3**\n  - *5* = **5**"},
-		{inputDiceRequest: "(2+3)*5", expectedText: "**User** rolls *(2+3)*5* = **25**\n- *(2+3)* = **5**\n  - *2* = **2**\n  - *3* = **3**\n- *5* = **5**"},
+		{inputDiceRequest: "1", expectedText: "**User** rolls 1 = **1**"},
+		{inputDiceRequest: "2+3*5", expectedText: "**User** rolls 2+3×5 = **17**"},
+		{inputDiceRequest: "(2+3)*5", expectedText: "**User** rolls (2+3)×5 = **25**"},
 	}
 	for _, testCase := range testCases {
 		command := &model.CommandArgs{
