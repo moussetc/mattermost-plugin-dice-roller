@@ -45,6 +45,8 @@ type RollResult struct {
 	order  int // order rolled
 	rank   int // index when sorted by (result, order)
 }
+type Stats struct{}
+type DeathSave struct{}
 
 // Roller
 func (n Node) roll(roller Roller) Node {
@@ -83,6 +85,8 @@ func (sp Dice) roll(n Node, roller Roller) NodeSpecialization {
 	})
 	return Dice{n: sp.n, x: sp.x, l: sp.l, h: sp.h, rolls: rolls}
 }
+func (sp Stats) roll(_ Node, _ Roller) NodeSpecialization     { return sp }
+func (sp DeathSave) roll(_ Node, _ Roller) NodeSpecialization { return sp }
 
 // Evaluate
 func (n Node) value() int { return n.sp.value(n) }
@@ -125,8 +129,24 @@ func (sp Dice) value(_ Node) int {
 	}
 	return ret
 }
+func (_ Stats) value(_ Node) int { return 0 }
+func (_ DeathSave) value(n Node) int {
+	var ret int = 0
+	for _, c := range n.child {
+		ret += c.value()
+	}
+	return ret
+}
 
 // Render
+func (n Node) renderToplevel() string {
+	r1, r2, r3, _ := n.render("- ")
+	if r2 != "" {
+		return fmt.Sprintf("%s = %s%s", r1, r2, r3)
+	} else {
+		return fmt.Sprintf("%s%s", r1, r3)
+	}
+}
 func (n Node) render(ind string) (string, string, string, string) {
 	return n.sp.render(n, ind)
 }
@@ -174,4 +194,43 @@ func (sp Dice) render(n Node, ind string) (string, string, string, string) {
 	}
 	detail := fmt.Sprintf("\n%s*%s (%s) =* ***%d***", ind, n.token, strings.Join(rollsStrs, " "), n.value())
 	return n.token, fmt.Sprintf("**%d**", n.value()), detail, detail
+}
+func (sp Stats) render(n Node, ind string) (string, string, string, string) {
+	intro := "up a new character! Adventure awaits. In the meanwhile, here are your ability scores:"
+	// Extract values and sort them descending
+	values := make([]int, len(n.child))
+	for i, c := range n.child {
+		values[i] = c.value()
+	}
+	sort.Slice(values, func(i int, j int) bool {
+		return values[i] > values[j]
+	})
+	// Render the scores
+	scoreText := ""
+	for _, v := range values {
+		scoreText += fmt.Sprintf("**%d**, ", v)
+	}
+	scoreText = scoreText[:len(scoreText)-2]
+	// Render details
+	details := ""
+	for _, c := range n.child {
+		_, _, detail, _ := c.render(ind)
+		details += detail
+	}
+	return fmt.Sprintf("%s\n%s", intro, scoreText), "", details, ""
+}
+func (sp DeathSave) render(n Node, ind string) (string, string, string, string) {
+	event := ""
+	value := n.value()
+	if value == 1 {
+		event = "suffers **A CRITICAL FAIL!** :coffin:"
+	} else if value <= 9 {
+		event = "**FAILS** :skull:"
+	} else if value <= 19 {
+		event = "**SUCCEEDS** :thumbsup:"
+	} else {
+		event = "**REGAINS 1 HP!** :star-struck:"
+	}
+	_, _, _, details := n.child[0].render(ind)
+	return fmt.Sprintf("a death saving throw, and %s", event), "", details, ""
 }

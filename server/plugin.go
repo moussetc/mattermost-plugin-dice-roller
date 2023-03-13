@@ -57,6 +57,8 @@ func (p *Plugin) GetHelpMessage() *model.CommandResponse {
 			"- `/roll d20a` a=advantage; d=disadvantage. `d20a`=`2d20kh1`.\n" +
 			"- `/roll d%a` d% is a synonym for d100.\n" +
 			"- `/roll (5+3-2)*7/3` will use `()+-*/` with their usual meanings, except `/` rounds down.\n" +
+			"- `/roll stats` will roll stats for a DnD 5e character (4d6d1 6 times).\n" +
+			"- `/roll death save` will roll a death save for DnD 5e.\n" +
 			"- `/roll help` will show this help text.\n\n" +
 			" ⚅ ⚂ Let's get rolling! ⚁ ⚄",
 		Props: props,
@@ -109,9 +111,9 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string, rolle
 	}
 
 	rolledNode := parsedNode.roll(roller)
-	renderResult1, renderResult2, renderResult3, _ := rolledNode.render("- ")
+	renderResult := rolledNode.renderToplevel()
 
-	text := fmt.Sprintf("**%s** rolls %s = %s%s", displayName, renderResult1, renderResult2, renderResult3)
+	text := fmt.Sprintf("**%s** rolls %s", displayName, renderResult)
 
 	return &model.Post{
 		UserId:    p.diceBotID,

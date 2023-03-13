@@ -148,7 +148,35 @@ var (
 		r.Result = makeNode(r.Token, []Result{}, Dice{n: 2, x: x, l: l, h: h})
 	})
 
-	y = Maybe(sum)
+	stats = Regex("(?i)stats").Map(func(r *Result) {
+		oneStat := Node{
+			token: "4d6d1",
+			child: []Node{},
+			sp:    Dice{n: 4, x: 6, l: 1, h: 4},
+		}
+		r.Result = Node{
+			token: r.Token,
+			child: []Node{
+				oneStat,
+				oneStat,
+				oneStat,
+				oneStat,
+				oneStat,
+				oneStat,
+			},
+			sp: Stats{},
+		}
+	})
+
+	deathSave = Regex("(?i)death[ -]?save").Map(func(r *Result) {
+		r.Result = Node{
+			token: r.Token,
+			child: []Node{Node{token: "1d20", child: []Node{}, sp: Dice{n: 1, x: 20, l: 0, h: 1}}},
+			sp:    DeathSave{},
+		}
+	})
+
+	y = Any(sum, stats, deathSave)
 )
 
 func init() {
