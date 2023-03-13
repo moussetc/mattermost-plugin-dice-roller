@@ -55,6 +55,7 @@ func (p *Plugin) GetHelpMessage() *model.CommandResponse {
 			"- `/roll 3d20` Roll 3 `d20` dice and add the results.\n" +
 			"- `/roll 4d6k3-3d4dl1` k,kh=keep highest; kl=keep lowest; d,dl=drop lowest, dh=drop highest.\n" +
 			"- `/roll d20a` a=advantage; d=disadvantage. `d20a`=`2d20kh1`.\n" +
+			"- `/roll d%a` d% is a synonym for d100.\n" +
 			"- `/roll (5+3-2)*7/3` will use `()+-*/` with their usual meanings, except `/` rounds down.\n" +
 			"- `/roll help` will show this help text.\n\n" +
 			" ⚅ ⚂ Let's get rolling! ⚁ ⚄",

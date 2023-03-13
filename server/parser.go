@@ -59,7 +59,13 @@ var (
 		r.Result = makeNode(r.Token, child, Prod{ops: ops})
 	})
 
-	oneDice = Seq(Regex("[Dd]"), natural).Map(func(r *Result) {
+	diceSides = Any(natural, "%").Map(func(r *Result) {
+		if r.Token == "%" {
+			r.Result = makeNode(r.Token, []Result{}, Natural{n: 100})
+		}
+	})
+
+	oneDice = Seq(Regex("[Dd]"), diceSides).Map(func(r *Result) {
 		x, err := getNatural(r.Child[1])
 		if err != nil {
 			r.Result = err
@@ -69,7 +75,7 @@ var (
 		r.Result = makeNode(r.Token, []Result{}, Dice{n: 1, x: x, l: 0, h: 1})
 	})
 
-	simpleDice = Seq(natural, Regex("[Dd]"), natural).Map(func(r *Result) {
+	simpleDice = Seq(natural, Regex("[Dd]"), diceSides).Map(func(r *Result) {
 		n, err := getNatural(r.Child[0])
 		if err != nil {
 			r.Result = err
@@ -84,7 +90,7 @@ var (
 		r.Result = makeNode(r.Token, []Result{}, Dice{n: n, x: x, l: 0, h: n})
 	})
 
-	keepdropDice = Seq(natural, Regex("[Dd]"), natural, Regex("([Kk]|[Dd])([HhLl])?"), natural).Map(func(r *Result) {
+	keepdropDice = Seq(natural, Regex("[Dd]"), diceSides, Regex("([Kk]|[Dd])([HhLl])?"), natural).Map(func(r *Result) {
 		n, err := getNatural(r.Child[0])
 		if err != nil {
 			r.Result = err
@@ -120,7 +126,7 @@ var (
 		r.Result = makeNode(r.Token, []Result{}, Dice{n: n, x: x, l: l, h: h})
 	})
 
-	advdisDice = Seq(Regex("[Dd]"), natural, Regex("([AaDd])")).Map(func(r *Result) {
+	advdisDice = Seq(Regex("[Dd]"), diceSides, Regex("([AaDd])")).Map(func(r *Result) {
 		x, err := getNatural(r.Child[1])
 		if err != nil {
 			r.Result = err
