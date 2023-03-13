@@ -67,7 +67,10 @@ func (sp Dice) roll(n Node, roller Roller) NodeSpecialization {
 		rolls[i].order = i
 	}
 	sort.Slice(rolls, func(i int, j int) bool {
-		return rolls[i].result < rolls[j].result || rolls[i].order < rolls[j].order
+		if rolls[i].result != rolls[j].result {
+			return rolls[i].result < rolls[j].result
+		}
+		return rolls[i].order < rolls[j].order
 	})
 	for i := 0; i < sp.n; i++ {
 		rolls[i].rank = i
