@@ -14,7 +14,7 @@ var (
 	sumOp  = Chars("+-", 1, 1)
 	prodOp = Chars("*×/", 1, 1)
 
-	groupExpr = Seq("(", sum, ")").Map(func(r *Result) {
+	groupExpr = Seq("(", maybeLabeled, ")").Map(func(r *Result) {
 		c := r.Child[1]
 		r.Token = "(" + c.Token + ")"
 		r.Result = makeNode(r.Token, []Result{c}, GroupExpr{})
@@ -176,7 +176,26 @@ var (
 		}
 	})
 
-	y = Any(sum, stats, deathSave)
+	labeled = Seq(sum, Regex(" [^,\\(\\)+*×/%-]+")).Map(func(r *Result) {
+		r.Token = r.Child[0].Token + r.Child[1].Token
+		r.Result = makeNode(r.Token, []Result{r.Child[0]}, Labeled{label: strings.TrimSpace(r.Child[1].Token)})
+	})
+	maybeLabeled = Any(labeled, sum)
+
+	commaList = Seq(maybeLabeled, Some(Seq(Regex(", *"), maybeLabeled))).Map(func(r *Result) {
+		token := r.Child[0].Token
+		clen := 1 + len(r.Child[1].Child)
+		child := make([]Result, clen)
+		child[0] = r.Child[0]
+		for i, op := range r.Child[1].Child {
+			token += op.Child[0].Token + op.Child[1].Token
+			child[i+1] = op.Child[1]
+		}
+		r.Token = token
+		r.Result = makeNode(r.Token, child, CommaList{})
+	})
+
+	y = NoAutoWS(Any(commaList, stats, deathSave))
 )
 
 func init() {

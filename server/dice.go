@@ -15,17 +15,18 @@ type Node struct {
 type NodeSpecialization interface {
 	roll(Node, Roller) NodeSpecialization
 	value(Node) int
-	// The render function returns four strings:
-	// 1. The string to be used on the left side of the equals sign on the top row
-	//    of the output, if the node is the root of the tree.
-	// 2. The string to be used on the right side of the equals sign on the top
-	//    row of the output, if the node is the root of the tree.
-	// 3. The details list, i.e. all output excluding the top row, if the node is
-	//    the root of the tree. This is either the empty string or a string
-	//    starting with a newline.
-	// 4. The part of the details list contributed by this node and all its
-	//    children, if the node is not the root of the tree.
-	render(Node, string) (string, string, string, string)
+	// The render function takes three arguments:
+	// 1. The node to render.
+	// 2. The indentation prefix, e.g. "- " for the top level.
+	// 3. The result role, one of RR_NONE, RR_TOP, RR_DETAIL.
+	// It returns three strings:
+	// 1. An unformatted expression, used as (part of) the left side of the equals sign.
+	// 2. A formatted result potentially used as (part of) the right side of the
+	//    equals sign, or the empty string if there should be no equals sign.
+	// 3. The details list, i.e. all subsequent rows, formatted and including the
+	//    indentation prefix. The details list either starts with a newline or is the
+	//    empty string.
+	render(n Node, ind string, rr int) (string, string, string)
 }
 type Roller func(int) int
 type GroupExpr struct{}
@@ -47,6 +48,17 @@ type RollResult struct {
 }
 type Stats struct{}
 type DeathSave struct{}
+type Labeled struct {
+	label string
+}
+type CommaList struct{}
+
+// Constants
+const (
+	RR_NONE = iota + 1
+	RR_TOP
+	RR_DETAIL
+)
 
 // Roller
 func (n Node) roll(roller Roller) Node {
@@ -87,6 +99,8 @@ func (sp Dice) roll(n Node, roller Roller) NodeSpecialization {
 }
 func (sp Stats) roll(_ Node, _ Roller) NodeSpecialization     { return sp }
 func (sp DeathSave) roll(_ Node, _ Roller) NodeSpecialization { return sp }
+func (sp Labeled) roll(_ Node, _ Roller) NodeSpecialization   { return sp }
+func (sp CommaList) roll(_ Node, _ Roller) NodeSpecialization { return sp }
 
 // Evaluate
 func (n Node) value() int { return n.sp.value(n) }
@@ -137,65 +151,91 @@ func (_ DeathSave) value(n Node) int {
 	}
 	return ret
 }
+func (sp Labeled) value(n Node) int {
+	return n.child[0].value()
+}
+func (sp CommaList) value(n Node) int {
+	if len(n.child) == 1 {
+		return n.child[0].value()
+	} else {
+		return 0
+	}
+}
 
 // Render
 func (n Node) renderToplevel() string {
-	r1, r2, r3, _ := n.render("- ")
+	r1, r2, r3 := n.render("- ", RR_TOP)
 	if r2 != "" {
 		return fmt.Sprintf("%s = %s%s", r1, r2, r3)
 	} else {
 		return fmt.Sprintf("%s%s", r1, r3)
 	}
 }
-func (n Node) render(ind string) (string, string, string, string) {
-	return n.sp.render(n, ind)
+func (n Node) render(ind string, rr int) (string, string, string) {
+	return n.sp.render(n, ind, rr)
 }
-func (_ GroupExpr) render(n Node, ind string) (string, string, string, string) {
-	r1, r2, r3, r4 := n.child[0].render(ind)
-	return fmt.Sprintf("(%s)", r1), r2, r3, r4
+func (_ GroupExpr) render(n Node, ind string, rr int) (string, string, string) {
+	r1, r2, r3 := n.child[0].render(ind, rr)
+	return fmt.Sprintf("(%s)", r1), r2, r3
 }
-func (sp Natural) render(_ Node, _ string) (string, string, string, string) {
-	return fmt.Sprintf("%d", sp.n), fmt.Sprintf("**%d**", sp.n), "", ""
-}
-func (sp Sum) render(n Node, ind string) (string, string, string, string) {
-	return renderSumProd(n, ind, sp.ops)
-}
-func (sp Prod) render(n Node, ind string) (string, string, string, string) {
-	return renderSumProd(n, ind, sp.ops)
-}
-func renderSumProd(n Node, ind string, ops []string) (string, string, string, string) {
-	if len(n.child) == 1 {
-		return n.child[0].sp.render(n.child[0], ind)
+func resultInteger(n int, rr int) string {
+	if rr == RR_TOP {
+		return fmt.Sprintf("**%d**", n)
+	} else {
+		return fmt.Sprintf("***%d***", n)
 	}
-	r1, r4 := "", ""
+}
+func (sp Natural) render(_ Node, _ string, rr int) (string, string, string) {
+	return fmt.Sprintf("%d", sp.n), resultInteger(sp.n, rr), ""
+}
+func (sp Sum) render(n Node, ind string, rr int) (string, string, string) {
+	return renderSumProd(n, ind, sp.ops, rr)
+}
+func (sp Prod) render(n Node, ind string, rr int) (string, string, string) {
+	return renderSumProd(n, ind, sp.ops, rr)
+}
+func renderSumProd(n Node, ind string, ops []string, rr int) (string, string, string) {
+	if len(n.child) == 1 {
+		return n.child[0].sp.render(n.child[0], ind, rr)
+	}
+	r1, r3 := "", ""
 	for i, c := range n.child {
-		r1a, _, _, r4a := c.render(ind)
+		r1a, _, r3a := c.render(ind, RR_NONE)
 		effectiveOp := ops[i]
 		if effectiveOp == "*" {
 			effectiveOp = "×"
 		}
 		r1 += effectiveOp + r1a
-		r4 += r4a
+		r3 += r3a
 	}
-	return r1, fmt.Sprintf("**%d**", n.value()), r4, r4
+	return r1, resultInteger(n.value(), rr), r3
 }
-func (sp Dice) render(n Node, ind string) (string, string, string, string) {
-	rollsStrs := make([]string, len(sp.rolls))
-	for i, rr := range sp.rolls {
-		if rr.use {
-			rollsStrs[i] = fmt.Sprintf("%d", rr.result)
-		} else {
-			rollsStrs[i] = fmt.Sprintf("~~%d~~", rr.result)
+func (sp Dice) render(n Node, ind string, rr int) (string, string, string) {
+	needsRollStr := !(sp.n == 1 && len(sp.rolls) == 1 && sp.rolls[0].use)
+	needsDetail := rr == RR_NONE || (rr != RR_DETAIL && needsRollStr)
+	rollStr := ""
+	if needsRollStr {
+		rollsStrs := make([]string, len(sp.rolls))
+		for i, rr := range sp.rolls {
+			if rr.use {
+				rollsStrs[i] = fmt.Sprintf("%d", rr.result)
+			} else {
+				rollsStrs[i] = fmt.Sprintf("~~%d~~", rr.result)
+			}
 		}
+		rollStr = fmt.Sprintf(" (%s)", strings.Join(rollsStrs, " "))
 	}
-	if sp.n == 1 && len(sp.rolls) == 1 && sp.rolls[0].use {
-		detail := fmt.Sprintf("\n%s*%s =* ***%d***", ind, n.token, n.value())
-		return n.token, fmt.Sprintf("**%d**", n.value()), "", detail
+	detail := ""
+	if needsDetail {
+		detail = fmt.Sprintf("\n%s*%s%s =* ***%d***", ind, n.token, rollStr, n.value())
 	}
-	detail := fmt.Sprintf("\n%s*%s (%s) =* ***%d***", ind, n.token, strings.Join(rollsStrs, " "), n.value())
-	return n.token, fmt.Sprintf("**%d**", n.value()), detail, detail
+	token := n.token
+	if needsRollStr && !needsDetail {
+		token += rollStr
+	}
+	return token, resultInteger(n.value(), rr), detail
 }
-func (sp Stats) render(n Node, ind string) (string, string, string, string) {
+func (sp Stats) render(n Node, ind string, _ int) (string, string, string) {
 	intro := "up a new character! Adventure awaits. In the meanwhile, here are your ability scores:"
 	// Extract values and sort them descending
 	values := make([]int, len(n.child))
@@ -214,12 +254,12 @@ func (sp Stats) render(n Node, ind string) (string, string, string, string) {
 	// Render details
 	details := ""
 	for _, c := range n.child {
-		_, _, detail, _ := c.render(ind)
+		_, _, detail := c.render(ind, RR_NONE)
 		details += detail
 	}
-	return fmt.Sprintf("%s\n%s", intro, scoreText), "", details, ""
+	return fmt.Sprintf("%s\n%s", intro, scoreText), "", details
 }
-func (sp DeathSave) render(n Node, ind string) (string, string, string, string) {
+func (sp DeathSave) render(n Node, ind string, rr int) (string, string, string) {
 	event := ""
 	value := n.value()
 	if value == 1 {
@@ -231,6 +271,45 @@ func (sp DeathSave) render(n Node, ind string) (string, string, string, string) 
 	} else {
 		event = "**REGAINS 1 HP!** :star-struck:"
 	}
-	_, _, _, details := n.child[0].render(ind)
-	return fmt.Sprintf("a death saving throw, and %s", event), "", details, ""
+	_, _, details := n.child[0].render(ind, RR_NONE)
+	return fmt.Sprintf("a death saving throw, and %s", event), "", details
+}
+func (sp Labeled) render(n Node, ind string, rr int) (string, string, string) {
+	if sp.label == "" {
+		return n.child[0].render(ind, rr)
+	}
+	switch rr {
+	case RR_TOP:
+		r1, r2, r3 := n.child[0].render(ind, rr)
+		r2 += fmt.Sprintf(" %s", sp.label)
+		return r1, r2, r3
+	case RR_NONE:
+		r1none, _, _ := n.child[0].render("  "+ind, RR_NONE)
+		r1, r2, r3 := n.child[0].render("  "+ind, RR_DETAIL)
+		if r2 != "" {
+			return r1none, r2, fmt.Sprintf("\n%s*%s =* %s *%s*%s", ind, r1, r2, sp.label, r3)
+		} else {
+			return r1none, r2, fmt.Sprintf("\n%s*%s* *%s*%s", ind, r1, sp.label, r3)
+		}
+	case RR_DETAIL:
+		r1, r2, r3 := n.child[0].render("  "+ind, rr)
+		r2 += fmt.Sprintf(" *%s*", sp.label)
+		return r1, r2, r3
+	default:
+		panic("invalid render request in Labeled.render")
+	}
+}
+func (sp CommaList) render(n Node, ind string, rr int) (string, string, string) {
+	r1, r2, r3 := "", "", ""
+	for i, c := range n.child {
+		r1a, r2a, r3a := c.render(ind, rr)
+		if i > 0 {
+			r1 += ", "
+			r2 += ", "
+		}
+		r1 += r1a
+		r2 += r2a
+		r3 += r3a
+	}
+	return r1, r2, r3
 }

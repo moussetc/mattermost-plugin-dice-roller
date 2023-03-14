@@ -59,6 +59,8 @@ func (p *Plugin) GetHelpMessage() *model.CommandResponse {
 			"- `/roll (5+3-2)*7/3` will use `()+-*/` with their usual meanings, except `/` rounds down.\n" +
 			"- `/roll stats` will roll stats for a DnD 5e character (4d6d1 6 times).\n" +
 			"- `/roll death save` will roll a death save for DnD 5e.\n" +
+			"- `/roll 1d20+5 for insight` You can add a label to the roll.\n" +
+			"- `/roll 1d20+4 to hit, (1d6+2 slashing)+(2d8 radiant) damage` You can make several rolls separated by commas, and add labels to nested parentheses.\n" +
 			"- `/roll help` will show this help text.\n\n" +
 			" ⚅ ⚂ Let's get rolling! ⚁ ⚄",
 		Props: props,
