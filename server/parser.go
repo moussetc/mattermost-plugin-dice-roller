@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	. "github.com/vektah/goparsify"
+	. "github.com/vektah/goparsify" //nolint: stylecheck
 )
 
 var (
@@ -171,7 +171,7 @@ var (
 	deathSave = Regex("(?i)death[ -]?save").Map(func(r *Result) {
 		r.Result = Node{
 			token: r.Token,
-			child: []Node{Node{token: "1d20", child: []Node{}, sp: Dice{n: 1, x: 20, l: 0, h: 1}}},
+			child: []Node{{token: "1d20", child: []Node{}, sp: Dice{n: 1, x: 20, l: 0, h: 1}}},
 			sp:    DeathSave{},
 		}
 	})

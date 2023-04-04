@@ -104,14 +104,14 @@ func (sp CommaList) roll(_ Node, _ Roller) NodeSpecialization { return sp }
 
 // Evaluate
 func (n Node) value() int { return n.sp.value(n) }
-func (_ GroupExpr) value(n Node) int {
+func (GroupExpr) value(n Node) int {
 	return n.child[0].value()
 }
 func (sp Natural) value(_ Node) int {
 	return sp.n
 }
 func (sp Sum) value(n Node) int {
-	var ret int = 0
+	var ret = 0
 	for i, c := range n.child {
 		switch sp.ops[i] {
 		case "+", "":
@@ -123,7 +123,7 @@ func (sp Sum) value(n Node) int {
 	return ret
 }
 func (sp Prod) value(n Node) int {
-	var ret int = 1
+	var ret = 1
 	for i, c := range n.child {
 		switch sp.ops[i] {
 		case "*", "×", "":
@@ -135,7 +135,7 @@ func (sp Prod) value(n Node) int {
 	return ret
 }
 func (sp Dice) value(_ Node) int {
-	var ret int = 0
+	var ret = 0
 	for _, rr := range sp.rolls {
 		if rr.use {
 			ret += rr.result
@@ -143,9 +143,9 @@ func (sp Dice) value(_ Node) int {
 	}
 	return ret
 }
-func (_ Stats) value(_ Node) int { return 0 }
-func (_ DeathSave) value(n Node) int {
-	var ret int = 0
+func (Stats) value(_ Node) int { return 0 }
+func (DeathSave) value(n Node) int {
+	var ret = 0
 	for _, c := range n.child {
 		ret += c.value()
 	}
@@ -174,7 +174,7 @@ func (n Node) renderToplevel() string {
 func (n Node) render(ind string, rr int) (string, string, string) {
 	return n.sp.render(n, ind, rr)
 }
-func (_ GroupExpr) render(n Node, ind string, rr int) (string, string, string) {
+func (GroupExpr) render(n Node, ind string, rr int) (string, string, string) {
 	r1, r2, r3 := n.child[0].render(ind, rr)
 	return fmt.Sprintf("(%s)", r1), r2, r3
 }
@@ -262,13 +262,14 @@ func (sp Stats) render(n Node, ind string, _ int) (string, string, string) {
 func (sp DeathSave) render(n Node, ind string, rr int) (string, string, string) {
 	event := ""
 	value := n.value()
-	if value == 1 {
+	switch {
+	case value == 1:
 		event = "suffers **A CRITICAL FAIL!** :coffin:"
-	} else if value <= 9 {
+	case value <= 9:
 		event = "**FAILS** :skull:"
-	} else if value <= 19 {
+	case value <= 19:
 		event = "**SUCCEEDS** :thumbsup:"
-	} else {
+	default:
 		event = "**REGAINS 1 HP!** :star-struck:"
 	}
 	_, _, details := n.child[0].render(ind, RR_NONE)

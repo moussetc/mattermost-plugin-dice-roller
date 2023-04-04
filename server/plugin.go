@@ -81,7 +81,12 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			return p.GetHelpMessage(), nil
 		}
 
-		post, generatePostError := p.generateDicePost(query, args.UserId, args.ChannelId, args.RootId, func(x int) int { return 1 + rand.Intn(x) })
+		// Suppress lint error
+		// > G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec)
+		// because dice rolls don't need to be cryptographically secure.
+		//#nosec G404
+		roller := func(x int) int { return 1 + rand.Intn(x) }
+		post, generatePostError := p.generateDicePost(query, args.UserId, args.ChannelId, args.RootId, roller)
 		if generatePostError != nil {
 			return nil, generatePostError
 		}

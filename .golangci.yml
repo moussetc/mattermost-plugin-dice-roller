@@ -12,6 +12,8 @@ linters-settings:
   govet:
     check-shadowing: true
     enable-all: true
+    disable:
+      - fieldalignment
   misspell:
     locale: US
 
@@ -19,12 +21,10 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - deadcode
     - errcheck
     - gocritic
     - gofmt
     - goimports
-    - golint
     - gosec
     - gosimple
     - govet
@@ -32,19 +32,19 @@ linters:
     - misspell
     - nakedret
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unused
-    - varcheck
     - whitespace
 
 issues:
   exclude-rules:
+    - text: "ST1003:"
+      linters:
+        - stylecheck
     - path: server/manifest.go
       linters:
-        - deadcode
         - unused
         - varcheck
     - path: server/configuration.go
