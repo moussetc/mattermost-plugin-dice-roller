@@ -77,7 +77,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	if strings.HasPrefix(args.Command, cmd) {
 		query := strings.TrimSpace((strings.Replace(args.Command, cmd, "", 1)))
 
-		if query == "help" || query == "--help" || query == "h" || query == "-h" {
+		lQuery := strings.ToLower(query)
+		if lQuery == "help" || lQuery == "--help" || lQuery == "h" || lQuery == "-h" {
 			return p.GetHelpMessage(), nil
 		}
 
