@@ -4,30 +4,91 @@
 
 This Mattermost plugin adds a `/roll` slash command to roll all kinds of virtual dice.
 
-## Examples
-- Use `/roll help` to show examples.
-- Use `/roll 20`, `/roll d20` or  `/roll 1D20` to roll a 20-sided die:
+## Functionality
+To roll a set of dice, use the `/roll` command followed by one or several dice expressions.
+The results will be shown in the channel, including total results and details as needed.
+Capital/small letters are interchangeable.
 
-![demo](doc/demo_20.png)
+- **Help:**
+  Use `/roll help` to show help.
+- **Basic dice:**
+  `NdX` is `N` dice, each with `X` sides.
+  `N` is assumed to be `1` if left out.
+  `X` can be `%` to mean `100`.
+  For example,
+  - use `/roll d20` or `/roll 1D20` to roll a 20-sided die:
 
-- Use `/roll 5d6` to roll five 6-sided dice:
+    ![demo](doc/demo_d20.png)
+  - use `/roll 5d6` to roll five 6-sided dice:
 
-![demo](doc/demo_5d6.png)
+    ![demo](doc/demo_5d6.png)
+- **Math:**
+  Integers and operators `()+-*/` have their usual meanings, except `/` rounds down.
+  This means that
+  - you can add modifiers to any roll. For example,
 
-- Use `/roll 5D6+3` to roll five 6-sided dice and add 3 to the result of each dice:
+    `/roll 5d6+5`:
 
-![demo](doc/demo_5d6_dice_modifier.png)
+    ![demo](doc/demo_5d6_plus_5.png)
+  - you can roll different kinds of dice and get a total. For example,
 
-- Use `/roll 5D6 +3` (note the space) to roll five 6-sided dice and add 3 to the total:
+    `/roll 4d6+3d4`:
 
-![demo](doc/demo_5d6_sum_modifier.png)
+    ![demo](doc/demo_4d6_plus_3d4.png)
+  - you can use the dice roller as calculator. For example,
 
-- Combine different dice to roll at the same time: `/roll 5 d8 13D20` to roll one 5-sided die, one 8-sided die and thirteen 20-sided dice:
+    `/roll (5+3-2)*7/3`:
 
-![demo](doc/demo_many_dice.png)
+    ![demo](doc/demo_math.png)
+- **Keep/drop:**
+  When you roll more than one die, you can add an instruction to the end to keep some and drop other dice:
+  - `kM` or `khM` will keep the highest `M` dice.
+  - `klM` will keep the lowest `M` dice.
+  - `dM` or `dlM` will drop the lowest `M` dice.
+  - `dhM` will drop the highest `M` dice.
 
-- **[Up to version 3.0.x]** Add `sum` at the end to sum results automatically: `/roll 5 d8 13D20 sum`. In later versions, the sum is always displayed without having to add `sum`.
+  For example,
+  - `/roll 4d6k3-3d4dl1`:
 
+    ![demo](doc/demo_4d6k3_minus_3d4dl1.png)
+  - `/roll d2%k1`:
+
+    ![demo](doc/demo_2d_percent_k1.png)
+- **Comma separation**:
+  You can provide several roll expressions in one command using commas to delimit them.
+  The total for each expression will be shown, but there will be no total adding together unrelated expressions.
+  For example,
+
+  `/roll 1d20+4, 1d6+2`:
+
+  ![demo](doc/demo_comma.png)
+- **Labels:**
+  After any roll expression, you can add a space and then a description.
+  This can be useful to keep track of comma separated expressions.
+  You can also label expressions within parentheses, causing a sum to be shown for that subexpression.
+  For example,
+
+  `/roll 1d20+4 to hit, (1d6+2 slashing)+(2d8 radiant) damage`:
+
+  ![demo](doc/demo_labels.png)
+
+### Functionality specific to DnD 5e
+
+- **Advantage/disadvantage:**
+  As a special shortcut, `dXa` means `2dXk1`, and `dXd` means `2dXkl1`.
+  For example,
+
+  `/roll d20a`:
+
+  ![demo](doc/demo_d20a.png)
+- **Stats:**
+  Use `/roll stats` to roll stats for a DnD 5e character (`4d6d1` 6 times):
+
+  ![demo](doc/demo_stats.png)
+- **Death save:**
+  Use `/roll death save` to roll a death save for DnD 5e:
+
+  ![demo](doc/demo_ds.png)
 
 ## Compatibility
 

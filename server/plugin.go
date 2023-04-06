@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -15,6 +16,9 @@ import (
 const (
 	trigger string = "roll"
 )
+
+//go:embed helptext.md
+var helpText string
 
 // Plugin implements the interface expected by the Mattermost server to communicate between the server and plugin processes.
 type Plugin struct {
@@ -51,19 +55,8 @@ func (p *Plugin) GetHelpMessage() *model.CommandResponse {
 
 	return &model.CommandResponse{
 		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-		Text: "Here are some examples:\n" +
-			"- `/roll 3d20` Roll 3 `d20` dice and add the results.\n" +
-			"- `/roll 4d6k3-3d4dl1` k,kh=keep highest; kl=keep lowest; d,dl=drop lowest, dh=drop highest.\n" +
-			"- `/roll d20a` a=advantage; d=disadvantage. `d20a`=`2d20kh1`.\n" +
-			"- `/roll d%a` d% is a synonym for d100.\n" +
-			"- `/roll (5+3-2)*7/3` will use `()+-*/` with their usual meanings, except `/` rounds down.\n" +
-			"- `/roll stats` will roll stats for a DnD 5e character (4d6d1 6 times).\n" +
-			"- `/roll death save` will roll a death save for DnD 5e.\n" +
-			"- `/roll 1d20+5 for insight` You can add a label to the roll.\n" +
-			"- `/roll 1d20+4 to hit, (1d6+2 slashing)+(2d8 radiant) damage` You can make several rolls separated by commas, and add labels to nested parentheses.\n" +
-			"- `/roll help` will show this help text.\n\n" +
-			" ⚅ ⚂ Let's get rolling! ⚁ ⚄",
-		Props: props,
+		Text:         helpText,
+		Props:        props,
 	}
 }
 
