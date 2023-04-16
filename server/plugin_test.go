@@ -14,7 +14,7 @@ import (
 )
 
 func TestGoodRequestHelp(t *testing.T) {
-	p, _ := initTestPlugin(t)
+	p, _ := initTestPlugin()
 	assert.Nil(t, p.OnActivate())
 
 	command := &model.CommandArgs{
@@ -29,7 +29,7 @@ func TestGoodRequestHelp(t *testing.T) {
 }
 
 func TestBadInputs(t *testing.T) {
-	p, _ := initTestPlugin(t)
+	p, _ := initTestPlugin()
 	assert.Nil(t, p.OnActivate())
 
 	testCases := []string{
@@ -53,7 +53,7 @@ func TestBadInputs(t *testing.T) {
 }
 
 func TestGoodInputs(t *testing.T) {
-	p, api := initTestPlugin(t)
+	p, api := initTestPlugin()
 	var post *model.Post
 	api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(nil, nil).Run(func(args mock.Arguments) {
 		post = args.Get(0).(*model.Post)
@@ -87,7 +87,7 @@ func TestGoodInputs(t *testing.T) {
 	}
 }
 
-func initTestPlugin(t *testing.T) (*Plugin, *plugintest.API) {
+func initTestPlugin() (*Plugin, *plugintest.API) {
 	api := &plugintest.API{}
 	api.On("RegisterCommand", mock.Anything).Return(nil)
 	api.On("UnregisterCommand", mock.Anything, mock.Anything).Return(nil)

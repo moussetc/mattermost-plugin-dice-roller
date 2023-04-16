@@ -64,7 +64,7 @@ func (p *Plugin) GetHelpMessage() *model.CommandResponse {
 }
 
 // ExecuteCommand returns a post that displays the result of the dice rolls
-func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) ExecuteCommand(_ *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	if p.API == nil {
 		return nil, appError("Cannot access the plugin API.", nil)
 	}
