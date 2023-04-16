@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 const (
@@ -50,7 +50,7 @@ func (p *Plugin) GetHelpMessage() *model.CommandResponse {
 	}
 
 	return &model.CommandResponse{
-		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		ResponseType: model.CommandResponseTypeEphemeral,
 		Text: "Here are some examples:\n" +
 			"- `/roll 20` to roll a 20-sided die. You can use any number.\n" +
 			"- `/roll 5D6` to roll five 6-sided dice in one go.\n" +

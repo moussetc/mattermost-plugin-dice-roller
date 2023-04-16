@@ -74,9 +74,19 @@ If you are running Mattermost v5.11 or earlier in [High Availability mode](https
     }
 ```
 
-# Development
 
-To avoid having to manually install your plugin, build and deploy your plugin using one of the following options.
+## Development
+
+to build the plugin:
+```
+make
+```
+
+This will produce a single plugin file (with support for multiple architectures) for upload to your Mattermost server:
+
+```
+dist/com.example.my-plugin.tar.gz
+```
 
 ### Deploying with Local Mode
 
@@ -88,7 +98,7 @@ If your Mattermost server is running locally, you can enable [local mode](https:
         ...
         "EnableLocalMode": true,
         "LocalModeSocketLocation": "/var/tmp/mattermost_local.socket"
-    }
+    },
 }
 ```
 
@@ -126,10 +136,6 @@ export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
 export MM_ADMIN_TOKEN=j44acwd8obn78cdcx7koid4jkr
 make deploy
 ```
-
-## What's next?
-- Better code testing
-- Generate roll results as accurate image (number of dice, number of faces...)
 
 ## Credits
 - This plugin is based of the [Mattermost plugin starter template](https://github.com/mattermost/mattermost-plugin-starter-template)

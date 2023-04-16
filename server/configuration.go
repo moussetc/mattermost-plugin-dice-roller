@@ -4,10 +4,13 @@ import (
 	"path/filepath"
 	"reflect"
 
+	manifest "github.com/moussetc/mattermost-plugin-dice-roller"
+
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/model"
+
+	pluginapi "github.com/mattermost/mattermost-plugin-api"
 )
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server
@@ -83,16 +86,22 @@ func (p *Plugin) OnConfigurationChange() error {
 
 	p.setConfiguration(configuration)
 
-	diceBotID, ensureBotError := p.Helpers.EnsureBot(&model.Bot{
+	return p.defineBot()
+}
+
+func (p *Plugin) defineBot() error {
+	client := pluginapi.NewClient(p.API, p.Driver)
+	bot := model.Bot{
 		Username:    "dicerollerbot",
 		DisplayName: "Dice Roller",
-		Description: "A bot account created by " + manifest.Name + " plugin.",
-	}, plugin.ProfileImagePath(filepath.Join("assets", "icon.png")))
+		Description: "A bot account created by " + manifest.Manifest.Name + " plugin.",
+	}
+	botID, ensureBotError := client.Bot.EnsureBot(&bot, pluginapi.ProfileImagePath(filepath.Join("assets", "icon.png")))
 	if ensureBotError != nil {
-		return errors.Wrap(ensureBotError, "failed to ensure dice bot.")
+		return errors.Wrap(ensureBotError, "failed to ensure dice bot")
 	}
 
-	p.diceBotID = diceBotID
+	p.diceBotID = botID
 
 	return nil
 }

@@ -3,7 +3,7 @@
     "name": "Dice Roller ⚄",
     "description": "Add a command for rolling dice ⚄",
     "version": "3.1.1",
-    "min_server_version": "5.20.0",
+    "min_server_version": "6.2.1",
     "homepage_url": "https://github.com/moussetc/mattermost-plugin-dice-roller/",
     "support_url": "https://github.com/moussetc/mattermost-plugin-dice-roller/issues",
     "release_notes_url": "https://github.com/moussetc/mattermost-plugin-dice-roller/releases/tag/v3.1.1",
@@ -11,7 +11,9 @@
     "server": {
         "executables": {
             "linux-amd64": "server/dist/plugin-linux-amd64",
+            "linux-arm64": "server/dist/plugin-linux-arm64",
             "darwin-amd64": "server/dist/plugin-darwin-amd64",
+            "darwin-arm64": "server/dist/plugin-darwin-arm64",
             "windows-amd64": "server/dist/plugin-windows-amd64.exe"
         },
         "executable": "server/dist/plugin-freebsd-amd64"
