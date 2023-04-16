@@ -1,4 +1,4 @@
-# mattermost-plugin-dice-roller ![Build Status](https://github.com/moussetc/mattermost-plugin-dice-roller/actions/workflows/ci.yml/badge.svg)
+# mattermost-plugin-dice-roller [![Build CI](https://github.com/moussetc/mattermost-plugin-dice-roller/actions/workflows/ci.yaml/badge.svg)](https://github.com/moussetc/mattermost-plugin-dice-roller/actions/workflows/ci.yaml)
 
 
 **Maintainer:** [@moussetc](https://github.com/moussetc)
