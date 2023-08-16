@@ -87,6 +87,42 @@ func TestGoodInputs(t *testing.T) {
 	}
 }
 
+func TestReason(t *testing.T) {
+	p, api := initTestPlugin()
+	var post *model.Post
+	api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(nil, nil).Run(func(args mock.Arguments) {
+		post = args.Get(0).(*model.Post)
+	})
+	assert.Nil(t, p.OnActivate())
+
+	testCases := []struct {
+		inputDiceRequest string
+		expectedText     string
+	}{
+		{
+			inputDiceRequest: "d1\nRoll reason",
+			expectedText:     "**User** rolls *d1* = **1**\n```\nRoll reason\n```",
+		},
+		{
+			inputDiceRequest: "2d1\nRoll reason\nother reason",
+			expectedText:     "**User** rolls *2d1* = **2**\n- 2d1: 1 1\n```\nRoll reason\nother reason\n```",
+		},
+	}
+	for _, testCase := range testCases {
+		command := &model.CommandArgs{
+			Command: "/roll " + testCase.inputDiceRequest,
+			UserId:  "userid",
+		}
+		response, err := p.ExecuteCommand(&plugin.Context{}, command)
+		testLabel := "Testing " + testCase.inputDiceRequest
+		assert.Nil(t, err, testLabel)
+		assert.NotNil(t, response, testLabel)
+		assert.NotNil(t, post, testLabel)
+		assert.NotNil(t, post.Message, testLabel)
+		assert.Equal(t, testCase.expectedText, strings.TrimSpace(post.Message), testLabel)
+	}
+}
+
 func initTestPlugin() (*Plugin, *plugintest.API) {
 	api := &plugintest.API{}
 	api.On("RegisterCommand", mock.Anything).Return(nil)
