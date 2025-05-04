@@ -1,0 +1,7 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    schedule:
+      interval: "cron"
+      cronjob: "quarterly"
+    open-pull-requests-limit: 10
