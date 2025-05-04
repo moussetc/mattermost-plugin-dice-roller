@@ -8,9 +8,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-
-	pluginapi "github.com/mattermost/mattermost-plugin-api"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/pluginapi"
 )
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server

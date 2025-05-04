@@ -2,14 +2,12 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"strings"
 	"sync"
-	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 )
 
 const (
@@ -32,8 +30,6 @@ type Plugin struct {
 }
 
 func (p *Plugin) OnActivate() error {
-	rand.Seed(time.Now().UnixNano())
-
 	return p.API.RegisterCommand(&model.Command{
 		Trigger:          trigger,
 		Description:      "Roll one or more dice",
