@@ -36,19 +36,18 @@ Use the following table to find the correct plugin version for your Mattermost s
 
 | Mattermost server | Plugin release | Incompatibility |
 | --- | --- | --- |
-| 5.20 and higher | v3.1.x+ | breaking plugin manifest change |
+| 7.10 and higher | v3.2.x+ | ℹ️ This version might be compatible down to 6.7 versions but has only been tested on 7.10+ |
+| 5.20 to 7.10 | v3.1.x+ | breaking plugin manifest change |
 | 5.12 to 5.19 | v3.0.x | breaking plugin API change |
 | 5.2 to 5.11 | v2.x.x | |
 | 4.6 to 5.1 | v1.x.x | |
 | below | *not supported* |  plugins can't create slash commands |
 
 ## Installation and configuration
-**In Mattermost 5.20 and later:**
-1. In Mattermost, go to **Main Menu > Plugin Marketplace**.
-2. Search for the "Dice Roller" plugin, then click **Install** to install it.
-3. **Activate the plugin** in the `System Console > Plugins Management > Management` page
 
-If you are running Mattermost 5.19 or earlier, or do not have the Plugin Marketplace enabled, follow these steps:
+> [!TIP]
+> This plugin was for a few years available in the official Mattermost marketplace, however the Mattermost team [decided to stop hosting community plugins in the marketplace](https://mattermost.atlassian.net/browse/MM-53030) in September 2023, so however you installed your current version, you will need to follow the manual installation steps below.
+
 1. Go to the [Releases page](https://github.com/moussetc/mattermost-plugin-dice-roller/releases) and download the `.tar.gz` package. Supported platforms are: Linux x64, Windows x64, Darwin x64, FreeBSD x64.
 2. Use the Mattermost `System Console > Plugins Management > Management` page to upload the `.tar.gz` package
 3. **Activate the plugin** in the `System Console > Plugins Management > Management` page
