@@ -75,7 +75,7 @@ func rollNumericDice(code string) (*diceRolls, error) {
 		}
 		if number > maxDice {
 			// Complain about insanity.
-			return nil, fmt.Errorf(fmt.Sprintf("'%s' is too many dice; maximum is %d.", numberStr, maxDice))
+			return nil, fmt.Errorf("'%s' is too many dice; maximum is %d", numberStr, maxDice)
 		}
 	}
 
