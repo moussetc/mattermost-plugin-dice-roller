@@ -27,6 +27,16 @@ This Mattermost plugin adds a `/roll` slash command to roll all kinds of virtual
 
 ![demo](doc/demo_many_dice.png)
 
+- Add roll reason at newline: 
+
+```
+/roll 3d1 +3 3d1
+your roll reason
+other roll reason
+```
+
+![demo](doc/demo_reason.png)
+
 - **[Up to version 3.0.x]** Add `sum` at the end to sum results automatically: `/roll 5 d8 13D20 sum`. In later versions, the sum is always displayed without having to add `sum`.
 
 
