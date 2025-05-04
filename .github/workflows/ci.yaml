@@ -30,7 +30,7 @@ jobs:
         stable: true
 
     - name: Install golangci-lint
-      uses: golangci/golangci-lint-action@v2
+      uses: golangci/golangci-lint-action@v7
       with:
         skip-go-installation: true
 
