@@ -99,6 +99,13 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*mod
 		displayName = user.Username
 	}
 
+	reason := ""
+	queries := strings.SplitN(query, "\n", 2)
+	if len(queries) == 2 {
+		reason = queries[1]
+	}
+	query = queries[0]
+
 	text := fmt.Sprintf("**%s** rolls *%s* = ", displayName, query)
 	sum := 0
 	rollRequests := strings.Fields(query)
@@ -140,6 +147,11 @@ func (p *Plugin) generateDicePost(query, userID, channelID, rootID string) (*mod
 	if singleResultCount > 1 {
 		formattedRollDetails = filterEmptyString(formattedRollDetails)
 		text += fmt.Sprintf("\n- %s", strings.Join(formattedRollDetails, "\n- "))
+	}
+
+	// Display roll reason
+	if reason != "" {
+		text += fmt.Sprintf("\n```\n%s\n```", reason)
 	}
 
 	return &model.Post{
